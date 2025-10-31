@@ -1,0 +1,1564 @@
+openapi: 3.1.1
+info:
+  title: CoffeeShops
+  description: REST API для системы управления кофейнями, напитками и пользователями
+  version: 1.0.0
+  contact: {}
+
+servers:
+  - url: /api/v1
+    description: Основной сервер API
+    
+#-----------------------------------------SCHEMAS-----------------------------------------------
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        user_id:
+          type: string
+          example: "a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6"
+          
+    CreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "9b165097-1c9f-4ea3-bef0-e505baa4ff63"
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Описание ошибки"
+
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        total:  #общее кол-во элем-ов во всех стр-цах
+          type: integer
+          example: 100
+        page:   #тек. стр-ца
+          type: integer
+          example: 1
+        limit:   #кол-во элементов на одной странице
+          type: integer
+          example: 20
+
+    #-------CATEGORY----------------
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор категории
+          example: "9b165097-1c9f-4ea3-bef0-e505baa4ff63"
+        name:
+          type: string
+          description: Название категории
+    CategoryData:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Название категории
+   
+
+    #-----------------------USER-------------------
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор пользователя
+        login:
+          type: string
+          description: Уникальное имя пользователя
+        email:
+          type: string
+          format: email
+          description: Email адрес пользователя
+        password:
+          type: string
+          description: Пароль пользователя
+        birthdate:
+          type: string
+          format: date
+          description: Дата рождения
+        role:
+          type: string
+          description: Роль пользователя в системе
+          items:
+            $ref: '#/components/schemas/UserRole'
+
+    UserRegister:
+      type: object
+      required:
+        - login
+        - email
+        - password
+        - birthdate
+      properties:
+        login:
+          type: string
+          description: Уникальное имя пользователя
+        email:
+          type: string
+          format: email
+          description: Email адрес пользователя
+        password:
+          type: string
+          description: Пароль пользователя
+        birthdate:
+          type: string
+          format: date
+          description: Дата рождения
+
+    UserLogin:
+      type: object
+      required:
+        - login
+        - password
+      properties:
+        login:
+          type: string
+          description: Уникальное имя пользователя
+        password:
+          type: string
+          description: Пароль пользователя
+
+    UserUpdate:
+      type: object
+      required:
+        - login
+        - email
+        - password
+        - birthdate
+      properties:
+        login:
+          type: string
+          description: Уникальное имя пользователя
+        email:
+          type: string
+          format: email
+          description: Email адрес пользователя
+        password:
+          type: string
+          description: Пароль пользователя
+        birthdate:
+          type: string
+          format: date
+          description: Дата рождения
+
+    #----------------------DRINK----------------
+    Drink:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор напитка
+        name:
+          type: string
+          description: Название напитка
+        # categoryIds:
+        #   type: array
+        #   items:
+        #     type: string
+        #     format: uuid
+        #   description: Список идентификаторов категорий, связанных с напитком
+
+    DrinkData:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Название напитка
+      
+    #------------------------------COFFEE SHOPS--------------------
+    CoffeeShop:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Идентификатор кофейни
+        companyId:
+          type: string
+          format: uuid
+          description: Идентификатор компании
+        address:
+          type: string
+          description: Адрес кофейни
+        workingHours:
+          type: string
+          description: Часы работы кофейни
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174000"
+        companyId: "123e4567-e89b-12d3-a456-426614174001"
+        address: "Москва, Тверская, 10"
+        workingHours: "08:00-22:00"
+
+    CoffeeShopData:
+      type: object
+      properties:
+        companyId:
+          type: string
+          format: uuid
+          description: Идентификатор компании
+        address:
+          type: string
+          description: Адрес кофейни
+        workingHours:
+          type: string
+          description: Часы работы кофейни
+      example:
+        companyId: "123e4567-e89b-12d3-a456-426614174001"
+        address: "Москва, Тверская, 10"
+        workingHours: "08:00-22:00"
+
+    # CoffeeShopUpdate:
+    #   type: object
+    #   properties:
+    #     address:
+    #       type: string
+    #       description: Адрес кофейни
+    #     workingHours:
+    #       type: string
+    #       description: Время работы кофейни
+    #   example:
+    #     address: "Москва, Тверская, 10"
+    #     workingHours: "09:00-23:00"
+
+    #------------------------COMPANIES-------------------------
+    Company:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор компании
+          readOnly: true
+        name:
+          type: string
+          description: Название компании кофеен
+          maxLength: 100
+        website:
+          type: string
+          description: URL веб-сайта компании
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174000"
+        name: "Starbucks"
+        website: "https://www.starbucks.ru"
+
+    CompanyData:
+      type: object
+      required:
+        - name
+        - website
+      properties:
+        name:
+          type: string
+          description: Название компании кофеен
+          maxLength: 100
+        website:
+          type: string
+          description: URL веб-сайта компании
+      example:
+        name: "Новая кофейная компания"
+        website: "https://www.newcoffee.ru"
+
+
+    #------------------------MENU ITEMS-------------------------
+    Menu:
+      type: object
+      properties:
+        companyId:
+          type: string
+          format: uuid
+          description: Идентификатор компании
+        drinkId:
+          type: string
+          format: uuid
+          description: Идентификатор напитка
+        price:
+          type: number
+          format: decimal
+          description: Цена напитка
+        size:
+          type: number
+          description: Объем в миллилитрах
+      example:
+        companyId: "123e4567-e89b-12d3-a456-426614174001"
+        drinkId: "123e4567-e89b-12d3-a456-426614174002"
+        price: 250.00
+        volume: 350
+
+    MenuItemUpdate:
+      type: object
+      properties:
+        price:
+          type: number
+          format: decimal
+          description: Цена в меню компании
+        volume:
+          type: number
+          description: Объем в миллилитрах в меню компании
+        isAvailable:
+          type: boolean
+          description: Статус доступности в меню
+      example:
+        price: 270.00
+        volume: 350
+        isAvailable: true
+
+    #перечисления
+    UserRole:
+      type: string
+      enum:
+        - Guest
+        - Ordinary User
+        - Moderator
+        - Administrator
+      example: Ordinary User
+
+  #-------------------------------------------PARAMETERS--------------------------------------------
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Номер страницы для пагинации
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    LimitParam:
+      name: LimitParam
+      in: query
+      description: Количество элементов на странице
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    CategoryId:
+      name: categoryId
+      in: path
+      required: true
+      description: UUID категории
+      schema:
+        type: string
+        format: uuid
+
+    UserRoleParam:
+      name: role
+      in: query
+      required: true
+      description: Новая роль пользователя
+      schema:
+        $ref: '#/components/schemas/UserRole'
+
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    DrinkId:
+      name: drinkId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    CoffeeShopId:
+      name: coffeeShopId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    CompanyId:
+      name: companyId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    MenuItemId:
+      name: menuItemId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    # Параметры фильтрации
+    NameSearchQuery:
+      name: search
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Поиск по названию
+
+    AddressSearchQuery:
+      name: address
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Поиск по адресу
+
+    CategoryIdFilterQuery:
+      name: categoryId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Фильтр по ID категории
+
+    CompanyIdFilterQuery:
+      name: companyId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Фильтр по ID компании
+
+    DrinkIdFilterQuery:
+      name: drinkId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Фильтр по ID напитка
+
+    PriceFromQuery:
+      name: priceFrom
+      in: query
+      required: false
+      schema:
+        type: number
+        format: decimal
+      description: Фильтр по минимальной цене
+
+    PriceToQuery:
+      name: priceTo
+      in: query
+      required: false
+      schema:
+        type: number
+        format: decimal
+      description: Фильтр по максимальной цене
+
+    IsAvailableFilterQuery:
+      name: isAvailable
+      in: query
+      required: false
+      schema:
+        type: boolean
+      description: Фильтр по доступности
+
+    OnlyFavoritesFilterQuery:
+      name: onlyFavorites
+      in: query
+      required: false
+      schema:
+        type: boolean
+      description: Фильтр только избранных элементов для текущего пользователя
+
+  responses:
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequest:
+      description: Неверный запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    
+    InternalServerError:
+      description: Произошла внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Доступ запрещен
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Конфликт данных
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Auth 
+    description: Аутентификация и регистрация пользователей
+  - name: Users
+    description: Операции с пользователями
+  - name: Drinks
+    description: Операции с напитками
+  - name: Categories
+    description: Операции с категориями напитков
+  - name: CoffeeShops
+    description: Операции с кофейнями
+  - name: Companies
+    description: Операции с сетями кофеен
+#  - name: Menu
+#    description: Операции с меню сетей кофеен
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Регистрация нового пользователя
+      description: Регистрирует нового пользователя в системе
+      operationId: RegisterUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Аутентификация пользователя
+      description: Аутентифицирует пользователя и возвращает JWT-токен
+      operationId: LoginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Пользователь с таким логином не найден
+          $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  #---------------------------------USERS---------------------------------------------------
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Получить список пользователей
+      description: Возвращает пагинированный список пользователей с фильтрацией (только для администраторов)
+      operationId: GetAllUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: login
+          in: query
+          description: Фильтр по логину
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse'
+        '404':
+          description: Пользователи не найдены
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Получить пользователя по ID
+      description: Возвращает информацию о пользователе по его идентификатору (доступно самому пользователю и администратору)
+      operationId: GetUserById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Информация о пользователе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Users
+      summary: Обновить пользователя
+      description: Обноить информацию о пользователе(доступно самому пользователю)
+      operationId: UpdateUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Пользователь успешно обновлен
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Users
+      summary: Удалить пользователя
+      description: Удаляет пользователя из системы (только для администраторов)
+      operationId: DeleteUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: Пользователь успешно удален
+        '400':
+          description: Нельзя удалить последнего пользователя-администратора
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/{userId}/role:
+    put:
+      tags:
+        - Users
+      summary: Обновить роль пользователя 
+      description: Изменяет роль пользователя в системе (только для администратора)
+      operationId: UpdateUserRights
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/UserRoleParam'
+      responses:
+        '200':
+          description: Роль пользователя успешно обновлена
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  #----------------------------------DRINKS----------------------------------------------------
+  /drinks:
+    get:
+      tags:
+        - Drinks
+      summary: Получить все напитки
+      description: Возвращает пагинированный список напитков с фильтрацией
+      operationId: GetAllDrinks
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: name
+          in: query
+          description: Поиск по названию напитка
+          schema:
+            type: string
+        - $ref: '#/components/parameters/OnlyFavoritesFilterQuery'
+      responses:
+        '200':
+          description: Список напитков
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Drink'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags:
+        - Drinks
+      summary: Создать новый напиток
+      description: Создает новый напиток (только для модераторов и администраторов)
+      operationId: AddDrink
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DrinkData'
+      responses:
+        '201':
+          description: Напиток успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Напиток с таким именем уже существует
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /drinks/{drinkId}:
+    get:
+      tags:
+          - Drinks
+      summary: Получить напиток по ID
+      description: Возвращает информацию о напитке по его идентификатору
+      operationId: GetDrinkById
+      parameters:
+        - $ref: '#/components/parameters/DrinkId'
+      responses:
+        '200':
+          description: Информация о напитке
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Drink'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Drinks
+      summary: Удалить напиток
+      description: Удаляет напиток по дентификатору (только для модераторов и администраторов)
+      operationId: DeleteDrink
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrinkId'
+      responses:
+        '200':
+          description: Напиток успешно удален
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /drinks/{drinkId}/categories:
+    get:
+      tags:
+        - Drinks
+      summary: Получить категории напитка
+      description: Получает все категории, связанные с конкретным напитком
+      operationId: GetDrinkCategories
+      parameters:
+        - $ref: '#/components/parameters/DrinkId'
+      responses:
+        '200':
+          description: Категории напитка успешно получены
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /drinks/{drinkId}/companies:
+      get:
+        tags:
+          - Drinks
+        summary: Получить все сети кофеен, в меню которых есть определенный напиток
+        description: Возвращает пагинированный список кофеен, в меню которых есть определенный напиток
+        operationId: GetCompaniesByDrinkId
+        parameters:
+          - name: drinkId
+            in: path
+            required: true
+            schema:
+              type: string
+              format: uuid
+          - $ref: '#/components/parameters/PageParam'
+          - $ref: '#/components/parameters/LimitParam'
+        responses:
+          '200':
+            description: Список сетей кофеен, в меню которых есть определенный напиток
+            content:
+              application/json:
+                schema:
+                  allOf:
+                    - $ref: '#/components/schemas/PaginatedResponse'
+                    - type: object
+                      properties:
+                        data:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Company'
+          '404':
+            $ref: '#/components/responses/NotFound'
+#---------------------------------CATEGORIES----------------------------------------------------
+  /categories:
+    get:
+      tags:
+        - Categories
+      summary: Получить список всех категорий
+      description: Возвращает пагинированный список всех категорий
+      operationId: GetAllCategories
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        # - $ref: '#/components/parameters/NameSearchQuery'
+      responses:
+        '200':
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CategoryData'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Categories
+      summary: Создать новую категорию
+      description: Создает новую категорию напитков (только для модераторов и администраторов)
+      operationId: AddCategory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryData'
+      responses:
+        '201':
+          description: Категория успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Категория с таким именем уже существует
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # /categories/{categoryId}:
+  #   get:
+  #     summary: Получить категорию по ID
+  #     description: Возвращает информацию о категории напитков по ее идентификатору
+  #     operationId: GetCategoryById
+  #     parameters:
+  #       - $ref: '#/components/parameters/CategoryId'
+  #     responses:
+  #       '200':
+  #         description: Информация о категории
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Category'
+  #       '404':
+  #         $ref: '#/components/responses/NotFound'
+
+  #       '500':
+  #         $ref: '#/components/responses/InternalServerError'
+
+    # put:
+    #   tags:
+    #     - Categories
+    #   summary: Обновить категорию
+    #   description: Обновляет информацию о категории напитков (только для модераторов и администраторов)
+    #   operationId: UpdateCategory
+    #   security:
+    #     - bearerAuth: []
+    #   parameters:
+    #     - $ref: '#/components/parameters/CategoryId'
+    #   requestBody:
+    #     required: true
+    #     content:
+    #       application/json:
+    #         schema:
+    #           $ref: '#/components/schemas/CategoryData'
+    #   responses:
+    #     '200':
+    #       description: Категория успешно обновлена
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: '#/components/schemas/Category'
+    #     '404':
+    #       $ref: '#/components/responses/NotFound'
+    #     '500':
+    #       $ref: '#/components/responses/InternalServerError'
+
+    # delete:
+    #   tags:
+    #     - Categories
+    #   summary: Удалить категорию
+    #   description: Удаляет категорию напитков по дентификатору (только для модераторов и администраторов)
+    #   operationId: DeleteCategory
+    #   security:
+    #     - bearerAuth: []
+    #   parameters:
+    #     - $ref: '#/components/parameters/CategoryId'
+    #   responses:
+    #     '204':
+    #       description: Категория успешно удалена
+    #     '404':
+    #       $ref: '#/components/responses/NotFound'
+    #     '500':
+    #       $ref: '#/components/responses/InternalServerError'
+  #---------------------------------FAVORITE DRINKS----------------------------------------------------
+  /favorite_drinks:
+    post:
+      tags:
+        - FavoriteDrinks
+      summary: Добавить напиток в избранное
+      description: Добавляет конкретный напиток в список избранных напитков текущего пользователя
+      operationId: AddDrinkToFavorites
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - drinkId
+              properties:
+                drinkId:
+                  type: string
+                  format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '201':  # Используйте 201 Created вместо 200
+          description: Напиток успешно добавлен в избранное
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /favorite_drinks/{drinkId}:
+    delete:
+      tags:
+        - FavoriteDrinks
+      summary: Удалить напиток из избранного
+      description: Удаляет конкретный напиток из списка избранных напитков текущего пользователя
+      operationId: RemoveDrinkFromFavorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: drinkId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '204':  # Для DELETE лучше использовать 204 No Content
+          description: Напиток успешно удален из избранного
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  #---------------------------------COFFEESHOPS----------------------------------------------------
+  # /coffeeshops:
+  #   get:
+  #     tags:
+  #       - CoffeeShops
+  #     summary: Получить все кофейни
+  #     description: Возвращает пагинированный список кофеен с фильтрацией
+  #     operationId: GetAllCoffeeShops
+  #     parameters:
+  #       - $ref: '#/components/parameters/PageParam'
+  #       - $ref: '#/components/parameters/LimitParam'
+  #       - $ref: '#/components/parameters/OnlyFavoritesFilterQuery'
+  #     responses:
+  #       '200':
+  #         description: Список кофеен
+  #         content:
+  #           application/json:
+  #             schema:
+  #               allOf:
+  #                 - $ref: '#/components/schemas/PaginatedResponse'
+  #                 - type: object
+  #                   properties:
+  #                     data:
+  #                       type: array
+  #                       items:
+  #                         $ref: '#/components/schemas/CoffeeShop'
+  #       '404':
+  #         $ref: '#/components/responses/NotFound'
+
+  /coffeeshops:
+    post:
+      tags:
+        - CoffeeShops
+      summary: Создать новую кофейню
+      description: Создает новую кофейню (только для модераторов и администраторов)
+      operationId: AddCoffeeShop
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoffeeShopData'
+      responses:
+        '201':
+          description: Кофейня успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+
+
+  /coffeeshops/{CoffeeShopId}:
+    delete:
+      tags:
+        - CoffeeShops
+      summary: Удалить кофейню
+      description: Удаляет кофейню по дентификатору (только для модераторов и администраторов)
+      operationId: DeleteCoffeeShop
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: CoffeeShopId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Идентификатор кофейни
+      responses:
+        '200':
+          description: Кофейня успешно удалена
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    get:
+      tags:
+          - CoffeeShops
+      summary: Получить кофейню по ID
+      description: Возвращает информацию о кофейне по ее идентификатору
+      operationId: GetCoffeeShopById
+      parameters:
+      - name: CoffeeShopId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Идентификатор кофейни
+      responses:
+        '200':
+          description: Информация о кофейне
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoffeeShop'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  #---------------------------------FAVORITE COFFEE SHOPS----------------------------------------------------
+  /favorite_coffeeshops:
+    post:
+      tags:
+        - FavoriteCoffeeShops
+      summary: Добавить кофенйю в избранное
+      description: Добавляет конкретную кофейню в список избранных кофеен текущего пользователя
+      operationId: AddCoffeeShopToFavorites
+      security:
+        - bearerAuth: []
+      # parameters:
+      # - name: CoffeeShopId
+      #   in: query
+      #   required: true
+      #   description: ID кофейни
+      #   schema:
+      #     type: string
+      #     format: uuid
+      #     example: "123e4567-e89b-12d3-a456-426614174000"
+      # - name: UserId
+      #   in: query
+      #   required: true
+      #   description: ID пользователя
+      #   schema:
+      #     type: string
+      #     format: uuid
+      #     example: "123e4567-e89b-12d3-a456-426614174001"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - CoffeeShopId
+              properties:
+                CoffeeShopId:
+                  type: string
+                  format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Кофейня успешно добавлена в избранное
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /favorite_coffeeshops/{CoffeeShopId}:
+    delete:
+      tags:
+        - FavoriteCoffeeShops
+      summary: Удалить кофейню из избранного
+      description: Удаляет конкретную кофейню из списка избранных кофеен текущего пользователя
+      operationId: RemoveCoffeeShopFromFavorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: CoffeeShopId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Кофейня успешно удалена из избранного
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+
+  #-------------------------------------COMPANIES-------------------------------------
+  /companies:
+    get:
+      tags:
+        - Companies
+      summary: Получить все сети кофеен
+      description: Возвращает пагинированный список кофеен
+      operationId: GetAllCompanies
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Список сетей кофеен
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Company'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags:
+        - Companies
+      summary: Создать новую сеть кофеен
+      description: Создает новую еть кофеен (только для модераторов и администраторов)
+      operationId: AddCompany
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyData'
+      responses:
+        '200':
+          description: Сеть кофеен успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # /companies/{drinkId}:
+  #   get:
+  #     tags:
+  #       - Companies
+  #     summary: Получить все сети кофеен, в меню которых есть определенный напиток 
+  #     description: Возвращает пагинированный список кофеен, в меню которых есть определенный напиток 
+  #     operationId: GetCompaniesByDrinkid
+  #     parameters:
+  #       - $ref: '#/components/parameters/DrinkId'
+  #       - $ref: '#/components/parameters/PageParam'
+  #       - $ref: '#/components/parameters/LimitParam'
+  #     responses:
+  #       '200':
+  #         description: Список сетей кофеен, в меню которых есть определенный напиток 
+  #         content:
+  #           application/json:
+  #             schema:
+  #               allOf:
+  #                 - $ref: '#/components/schemas/PaginatedResponse'
+  #                 - type: object
+  #                   properties:
+  #                     data:
+  #                       type: array
+  #                       items:
+  #                         $ref: '#/components/schemas/Company'
+  #       '404':
+  #         $ref: '#/components/responses/NotFound'
+
+  /companies/{companyId}:
+    delete:
+      tags:
+        - Companies
+      summary: Удалить сеть кофеен
+      description: Удаляет сеть кофеен по идентификатору (только для модераторов и администраторов)
+      operationId: DeleteCompany
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyId'
+      responses:
+        '200':
+          description: Сеть кофеен успешно удалена
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    get:
+      tags:
+        - Companies
+      summary: Получить сеть кофеен по ID
+      description: Возвращает информацию о сети кофеен по ее идентификатору
+      operationId: GetCompanyById
+      parameters:
+        - $ref: '#/components/parameters/CompanyId'
+      responses:
+        '200':
+          description: Информация о сети кофеен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+          
+  /companies/{companyId}/menu:
+    get:
+      tags:
+        - Companies
+      summary: Получить все позиции меню сети кофеен
+      description: Получает список всех позиций меню сети кофеен
+      operationId: GetAllMenuItems
+      parameters:
+        - $ref: '#/components/parameters/CompanyId'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Список позиций меню сети кофеен
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Menu'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    post:
+      tags:
+        - Companies
+      summary: Добавить позицию в меню
+      description: Добавляет новую позицию в меню конкретной компании
+      operationId: AddMenuItem
+      security:
+        - bearerAuth: []  # Добавил аутентификацию для консистентности
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          description: ID компании
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Menu'
+      responses:
+        '201':  # Изменил на 201 Created - более семантично для POST
+          description: Позиция успешно добавлена в меню
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /companies/{companyId}/coffeeshops:
+    get:
+      tags:
+        - Companies
+      summary: Получить все кофейни сети кофеен
+      description: Возвращает пагинированный список кофеен конкретной сети с фильтрацией
+      operationId: GetCoffeeShopsByCompanyId
+      parameters:
+        - $ref: '#/components/parameters/CompanyId'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OnlyFavoritesFilterQuery'
+      responses:
+        '200':
+          description: Список кофеен
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CoffeeShop'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /companies/{companyId}/menu/{drinkId}:
+    delete:
+      tags:
+        - Companies
+      summary: Удалить позицию меню
+      description: Удаляет позицию из меню конкретной компании
+      operationId: DeleteMenuItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174001"
+        - name: drinkId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Позиция меню успешно удалена
+        '204':
+          description: Позиция меню удалена
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  #-------------------------------------MENU-------------------------------------
+
+  # /menu:
+  #   delete:
+  #     tags:
+  #       - Menu
+  #     summary: Удалить позицию меню
+  #     description: Удаляет позицию из меню сети кофеен
+  #     operationId: DeleteMenuItem
+  #     security:
+  #       - bearerAuth: []
+  #     parameters:
+  #     - name: drinkId
+  #       in: query
+  #       required: true
+  #       description: ID напитка
+  #       schema:
+  #         type: string
+  #         format: uuid
+  #         example: "123e4567-e89b-12d3-a456-426614174000"
+  #     - name: companyId
+  #       in: query
+  #       required: true
+  #       description: ID компании
+  #       schema:
+  #         type: string
+  #         format: uuid
+  #         example: "123e4567-e89b-12d3-a456-426614174001"
+  #     responses:
+  #       '200':
+  #         description: позиция меню успешно удалена
+  #       '404':
+  #         $ref: '#/components/responses/NotFound'
+  #       '500':
+  #         $ref: '#/components/responses/InternalServerError'
+    
+  #   post:
+  #     tags:
+  #       - Menu
+  #     summary: Добавить позицию в меню
+  #     description: Добавляет новую позицию в меню сети кофеен
+  #     operationId: AddMenuItem
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/Menu'
+  #     responses:
+  #       '200':
+  #         description: Запись успешно добавлена в меню
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/CreateResponse'
+  #       '400':
+  #         $ref: '#/components/responses/BadRequest'
+  #       '409':
+  #         $ref: '#/components/responses/Conflict'
