@@ -1,0 +1,26 @@
+namespace CoffeeShops.Domain.Models
+{
+    public class Menu
+    {
+        public Guid Id_drink { get; set; }
+        public Guid Id_company { get; set; }
+        public int Size { get; set; }
+        public decimal Price { get; set; }
+        public string? DrinkName { get; set; }
+        public Menu(Guid _Id_drink, Guid _Id_company, int _Size, decimal _Price)
+        {
+            Id_drink = _Id_drink;
+            Id_company = _Id_company;
+            Size = _Size;
+            Price = _Price;
+        }
+        public Menu(Guid _Id_drink, Guid _Id_company, int _Size, decimal _Price, string _DrinkName)
+        {
+            Id_drink = _Id_drink;
+            Id_company = _Id_company;
+            Size = _Size;
+            Price = _Price;
+            DrinkName = _DrinkName;
+        }
+    }
+}

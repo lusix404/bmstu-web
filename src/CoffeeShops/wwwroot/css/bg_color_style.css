@@ -1,0 +1,8 @@
+﻿
+body {
+    background-color: #5E463D; /* Темный фон */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #EDE7DD; /* Цвет текста по умолчанию */
+    margin: 0;
+    padding: 0;
+}

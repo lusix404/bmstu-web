@@ -1,0 +1,124 @@
+﻿using CoffeeShops.DataAccess.Converters;
+using CoffeeShops.Domain.Interfaces.Repositories;
+using CoffeeShops.Domain.Models;
+using CoffeeShops.DataAccess.Context;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using CoffeeShops.DTOs.CoffeeShop;
+
+namespace CoffeeShops.DataAccess.Repositories;
+public class CoffeeShopRepository : ICoffeeShopRepository
+{
+    private IDbContextFactory _contextFactory;
+    public CoffeeShopRepository(IDbContextFactory contextFactory)
+    {
+        _contextFactory = contextFactory;
+    }
+
+    public async Task<CoffeeShop?> GetCoffeeShopByIdAsync(Guid coffeeshop_id, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+        var dbCoffeeShop = await _context.CoffeeShops
+            .Join(_context.Companies,
+                  cs => cs.Id_company,
+                  comp => comp.Id_company,
+                  (cs, comp) => new CoffeeShop(cs.Id_coffeeshop,
+                      cs.Id_company,
+                      cs.Address,
+                      cs.WorkingHours,
+                      comp.Name))
+            .AsNoTracking()
+            .FirstOrDefaultAsync(cs => cs.Id_coffeeshop == coffeeshop_id);
+
+        //return dbCoffeeShop != null ? CoffeeShopConverter.ConvertToDomainModel(dbCoffeeShop) : null;
+        return dbCoffeeShop;
+    }
+
+    public async Task<(List<CoffeeShop>? data, int total)> GetAllCoffeeShopsAsync(CoffeeShopFilters filters, int page, int limit, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+        var query = _context.CoffeeShops.AsQueryable();
+        if (filters.Id_company != null)
+        {
+            query = query.Where(u => u.Id_company == filters.Id_company);
+        }
+        else if (filters.OnlyFavorites && (filters.Id_user != null))
+        {
+            query = query.Where(cs => _context.FavCoffeeShops.Any(fav => fav.Id_coffeeshop == cs.Id_coffeeshop 
+            && fav.Id_user == filters.Id_user));
+        }
+
+        var total = await query.CountAsync();
+
+        //var coffeeshops = await query
+        //    .OrderBy(cs => cs.Id_coffeeshop)
+        //    .Skip((page - 1) * limit)
+        //    .Take(limit)
+        //    .ToListAsync();
+        var coffeeshops = await query
+            .Join(_context.Companies,
+                  cs => cs.Id_company,
+                  comp => comp.Id_company,
+                  (cs, comp) => new CoffeeShop(cs.Id_coffeeshop,
+                      cs.Id_company,
+                      cs.Address,
+                      cs.WorkingHours,
+                      comp.Name))
+            .OrderBy(x => x.CompanyName)
+            .Skip((page - 1) * limit)
+            .Take(limit)
+            .AsNoTracking()
+            .ToListAsync();
+
+        //return (coffeeshops.ConvertAll(cs => CoffeeShopConverter.ConvertToDomainModel(cs)), total);
+        return (coffeeshops, total);
+    }
+
+
+    public async Task<(List<CoffeeShop>? data, int total)> GetCoffeeShopsByCompanyIdAsync(Guid company_id, CoffeeShopFilters filters, int page, int limit, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+        //var dbCoffeeShops = await _context.CoffeeShops
+        //    .Where(cs => cs.Id_company == company_id)
+        //    .AsNoTracking()
+        //    .ToListAsync();
+
+        //return dbCoffeeShops?.ConvertAll(CoffeeShopConverter.ConvertToDomainModel);
+        var query = _context.CoffeeShops.AsQueryable();
+        if (filters.OnlyFavorites && (filters.Id_user != null))
+        {
+            query = query.Where(cs => _context.FavCoffeeShops.Any(fav => fav.Id_coffeeshop == cs.Id_coffeeshop
+            && fav.Id_user == filters.Id_user));
+        }
+        var coffeeshops = await query
+           .Where(cs => cs.Id_company == company_id)
+           .OrderBy(cs => cs.Id_coffeeshop)
+           .Skip((page - 1) * limit)
+           .Take(limit)
+           .AsNoTracking()
+           .ToListAsync();
+        return (coffeeshops.ConvertAll(cs => CoffeeShopConverter.ConvertToDomainModel(cs)), coffeeshops.Count);
+    }
+
+    public async Task<Guid> AddAsync(CoffeeShop coffeeshop, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+        var dbCoffeeShop = CoffeeShopConverter.ConvertToDbModel(coffeeshop);
+        await _context.CoffeeShops.AddAsync(dbCoffeeShop);
+        await _context.SaveChangesAsync();
+        return dbCoffeeShop.Id_coffeeshop;
+    }
+
+    public async Task RemoveAsync(Guid coffeeshop_id, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+        var dbCoffeeShop = await _context.CoffeeShops
+            .FirstOrDefaultAsync(cs => cs.Id_coffeeshop == coffeeshop_id);
+
+        if (dbCoffeeShop != null)
+        {
+            _context.CoffeeShops.Remove(dbCoffeeShop);
+            await _context.SaveChangesAsync();
+        }
+    }
+}
