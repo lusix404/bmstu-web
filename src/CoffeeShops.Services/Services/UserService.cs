@@ -95,10 +95,10 @@ namespace CoffeeShops.Services.Services
                 throw new UserWrongPasswordException($"Password for login={login} is incorrect");
             }
 
-            var token = _jwtService.GenerateToken(user.Id_user, user.Login, user.Id_role);
+            var token = _jwtService.GenerateToken(user.Id_user, user.Login, UserRoleExtensions.ToRoleIntFromEnumType(user.Id_role));
 
             _logger.LogInformation($"User with login={login} logged in successfully.");
-            return new AuthResponse { Id_user = user.Id_user, Token = token, Id_role = user.Id_role };
+            return new AuthResponse { Id_user = user.Id_user, Token = token, RoleName = UserRoleExtensions.ToStringFromUserRole(user.Id_role) };
         }
 
 
@@ -132,7 +132,7 @@ namespace CoffeeShops.Services.Services
         }
 
         //возвр. User
-        public async Task UpdateUserRightsAsync(Guid id, UserRole new_id_role, int id_role)
+        public async Task UpdateUserRightsAsync(Guid id, int new_id_role, int id_role)
         {
             var user = await _userRepository.GetUserByIdAsync(id, id_role);
             if (user == null)
@@ -155,6 +155,7 @@ namespace CoffeeShops.Services.Services
             }
             catch (UserLastAdminException ex)
             {
+                _logger.LogWarning($"Нельзя удалять последнего администратора");
                 throw;
             }
             catch (Exception ex)
@@ -183,6 +184,8 @@ namespace CoffeeShops.Services.Services
 
             await _userRepository.UpdateUserAsync(user, id_role);
         }
+
+
 
     }
 }

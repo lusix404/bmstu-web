@@ -96,6 +96,12 @@ namespace CoffeeShops.Services.Services
                     _logger.LogWarning("Coffee shop not found: {CoffeeShopId}", coffeeshop_id);
                     throw new CoffeeShopNotFoundException($"Coffeeshop with id={coffeeshop_id} was not found");
                 }
+                var exists = _favcoffeeshopsRepository.GetRecordAsync(coffeeshop_id, user_id, id_role);
+                if (exists == null)
+                {
+                    _logger.LogWarning($"Coffee shop with id={coffeeshop_id} was not found in user's (id={user_id}) list of favorite coffeeshops");
+                    throw new CoffeeShopIsNotFavoriteException($"Coffee shop with id={coffeeshop_id} was not found in user's (id={user_id}) list of favorite coffeeshops");
+                }
 
                 await _favcoffeeshopsRepository.RemoveAsync(user_id, coffeeshop_id, id_role);
 

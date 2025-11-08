@@ -6,8 +6,8 @@ namespace CoffeeShops.DTOs.Category;
 public class CreateCategoryRequest
 {
 
-    [JsonPropertyName("name")]
+    [JsonPropertyName("category_name")]
     [Required]
-    public string Name { get; set; } = string.Empty;
+    public string CategoryName { get; set; } = string.Empty;
 
 }

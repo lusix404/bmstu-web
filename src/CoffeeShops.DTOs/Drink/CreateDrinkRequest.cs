@@ -5,7 +5,7 @@ namespace CoffeeShops.DTOs.Drink;
 
 public class CreateDrinkRequest
 {
-    [JsonPropertyName("name")]
+    [JsonPropertyName("drink_name")]
     [Required]
-    public string Name { get; set; }
+    public string DrinkName { get; set; }
 }

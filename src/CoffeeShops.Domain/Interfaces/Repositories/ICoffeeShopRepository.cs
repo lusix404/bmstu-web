@@ -10,5 +10,6 @@ namespace CoffeeShops.Domain.Interfaces.Repositories
         Task<(List<CoffeeShop>? data, int total)> GetAllCoffeeShopsAsync(CoffeeShopFilters filters, int page, int limit, int id_role);
         Task<Guid> AddAsync(CoffeeShop coffeeshop, int id_role);
         Task RemoveAsync(Guid coffeeshop_id, int id_role);
+        Task RemoveAllByCompanyIdAsync(Guid company_id, int id_role);
     }
 }

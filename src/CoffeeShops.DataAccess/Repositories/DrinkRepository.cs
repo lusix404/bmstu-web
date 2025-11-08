@@ -5,6 +5,7 @@ using CoffeeShops.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using CoffeeShops.DTOs.Drink;
+using CoffeeShops.Domain.Exceptions.DrinkServiceExceptions;
 
 namespace CoffeeShops.DataAccess.Repositories;
 public class DrinkRepository : IDrinkRepository
@@ -23,12 +24,6 @@ public class DrinkRepository : IDrinkRepository
     }
     public async Task<(List<Drink>? data, int total)> GetAllDrinksAsync(DrinkFilters filters, int page, int limit, int id_role)
     {
-        //var _context = _contextFactory.GetDbContext(id_role);
-        //var drinks = await _context.Drinks
-        //    .AsNoTracking()
-        //    .ToListAsync();
-
-        //return drinks.ConvertAll(d => DrinkConverter.ConvertToDomainModel(d));
         var _context = _contextFactory.GetDbContext(id_role);
         var query = _context.Drinks.AsQueryable();
         
@@ -41,6 +36,11 @@ public class DrinkRepository : IDrinkRepository
         {
             query = query.Where(u => u.Name == filters.DrinkName);
         }
+        if (!string.IsNullOrEmpty(filters.CategoryName))
+        {
+            query = query.Where(d => _context.DrinksCategories.Any(dc => dc.Id_drink == d.Id_drink &&
+                   dc.Category.Name == filters.CategoryName));
+        }
         var total = await query.CountAsync();
 
         var drinks = await query
@@ -52,12 +52,23 @@ public class DrinkRepository : IDrinkRepository
         return (drinks.ConvertAll(cs => DrinkConverter.ConvertToDomainModel(cs)), total);
     }
 
-    public async Task AddAsync(Drink drink, int id_role)
+    public async Task<Guid> AddAsync(Drink drink, int id_role)
     {
         var _context = _contextFactory.GetDbContext(id_role);
+
+        bool drinkExists = await _context.Drinks.AnyAsync(d => d.Name == drink.Name);
+
+        if (drinkExists)
+        {
+            throw new DrinkNameAlreadyExistsException($"Напиток с именем '{drink.Name}' уже существует");
+        }
+
         var drinkDb = DrinkConverter.ConvertToDbModel(drink);
         await _context.Drinks.AddAsync(drinkDb);
         await _context.SaveChangesAsync();
+
+        var added = await _context.Drinks.FirstOrDefaultAsync(d => d.Name == drink.Name);
+        return added.Id_drink;
     }
 
     public async Task RemoveAsync(Guid drink_id, int id_role)

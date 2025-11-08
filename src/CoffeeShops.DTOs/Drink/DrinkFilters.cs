@@ -10,7 +10,7 @@ public class DrinkFilters
     [FromQuery(Name = "category_name")]
     public string? CategoryName { get; set; }
 
-    [FromQuery(Name = "name")]
+    [FromQuery(Name = "drink_name")]
     public string? DrinkName { get; set; }
 
     [FromQuery(Name = "onlyFavorites")]

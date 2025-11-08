@@ -48,16 +48,22 @@ public class DrinksCategoryService : IDrinksCategoryService
                 throw new CategoryNotFoundException($"Category with id={category_id} was not found");
             }
 
-            if (drink.Categories.Any(f => f.Id_category == category_id))
+            var have_category = await _drinkscategoryRepository.GetRecordAsync(drink_id, category_id, id_role);
+            if (have_category != null)
             {
                 _logger.LogWarning("Drink {DrinkId} already has category {CategoryId}",
                     drink_id, category_id);
                 throw new DrinkAlreadyHasThisCategoryException(
                     $"Drink with id={drink_id} has already had category with id={category_id}");
             }
+            //if (drink.DrinkCategories.Any(f => f.Id_drink == drink_id && f.Id_category == category_id))
+            //{
+            //    throw new DrinkAlreadyHasThisCategoryException($"Drink with id={drink_id} has already had category with id={category_id}");
+            //}
+
 
             DrinksCategory record = new DrinksCategory(drink_id, category_id);
-            drink.Categories.Add(category);
+            //drink.Categories.Add(category);
             await _drinkscategoryRepository.AddAsync(record, id_role);
 
             _logger.LogInformation("Successfully added category {CategoryId} to drink {DrinkId}",
@@ -85,12 +91,11 @@ public class DrinksCategoryService : IDrinksCategoryService
                 throw new DrinkNotFoundException($"Drink with id={drink_id} was not found");
             }
 
-            int categoriesCount = drink.Categories.Count;
-            drink.Categories.Clear();
+            //int categoriesCount = drink.Categories.Count;
+            //drink.Categories.Clear();
             await _drinkscategoryRepository.RemoveByDrinkIdAsync(drink_id, id_role);
 
-            _logger.LogInformation("Successfully removed {CategoriesCount} categories from drink {DrinkId}",
-                categoriesCount, drink_id);
+            _logger.LogInformation("Successfully removed all categories from drink {DrinkId}",drink_id);
         }
         catch (Exception ex)
         {
@@ -115,10 +120,20 @@ public class DrinksCategoryService : IDrinksCategoryService
 
             var categories = await _drinkscategoryRepository.GetAllCategoriesByDrinkIdAsync(drink_id, id_role);
 
+            if (categories == null || !categories.Any())
+            {
+                _logger.LogWarning($"There are no categories for drink with id={drink_id}");
+                throw new NoDrinksCategoriesFoundException($"There are no categories for drink with id={drink_id}");
+            }
+
             _logger.LogInformation("Found {CategoriesCount} categories for drink {DrinkId}",
                 categories?.Count ?? 0, drink_id);
 
             return categories;
+        }
+        catch (NoDrinksCategoriesFoundException ex)
+        {
+            throw;
         }
         catch (Exception ex)
         {

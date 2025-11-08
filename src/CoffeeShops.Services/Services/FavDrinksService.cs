@@ -75,14 +75,15 @@ public class FavDrinksService : IFavDrinksService
         }
 
         // Проверка на наличие напитка в избранном
-        var favorite = user.FavoriteDrinks.FirstOrDefault(f => f.Id_drink == drink_id);
-        if (favorite == null)
+        //var exists = user.FavoriteDrinks.FirstOrDefault(f => f.Id_drink == drink_id);
+        var exists = _favdrinksRepository.GetRecordAsync(drink_id, user_id, id_role);
+        if (exists == null)
         {
             _logger.LogWarning($"Drink with id={drink_id} was not found in user's (id={user_id}) list of favorite drinks.");
             throw new DrinkIsNotFavoriteException($"Drink with id={drink_id} was not found in user's (id={user_id}) list of favorite drinks");
         }
 
-        user.FavoriteDrinks.Remove(favorite);
+        //user.FavoriteDrinks.Remove(favorite);
         await _favdrinksRepository.RemoveAsync(user_id, drink_id, id_role);
         _logger.LogInformation($"Drink with id={drink_id} has been removed from user with id={user_id} favorites.");
     }

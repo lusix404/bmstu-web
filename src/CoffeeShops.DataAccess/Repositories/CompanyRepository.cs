@@ -69,4 +69,40 @@ public class CompanyRepository : ICompanyRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task RemoveCompanyWithAllDataAsync(Guid company_id, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            await _context.FavCoffeeShops
+                .Where(fav => _context.CoffeeShops
+                    .Where(cs => cs.Id_company == company_id)
+                    .Select(cs => cs.Id_coffeeshop)
+                    .Contains(fav.Id_coffeeshop))
+                .ExecuteDeleteAsync(); 
+
+            await _context.CoffeeShops
+                .Where(cs => cs.Id_company == company_id)
+                .ExecuteDeleteAsync();
+
+            await _context.Menus
+                .Where(m => m.Id_company == company_id)
+                .ExecuteDeleteAsync();
+
+            await _context.Companies
+                .Where(c => c.Id_company == company_id)
+                .ExecuteDeleteAsync(); 
+
+            await transaction.CommitAsync();
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 }

@@ -64,4 +64,13 @@ public class DrinksCategoryRepository : IDrinksCategoryRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<DrinksCategory>? GetRecordAsync(Guid drink_id, Guid category_id, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+        var record = await _context.DrinksCategories
+    .FirstOrDefaultAsync(dc => dc.Id_drink == drink_id && dc.Id_category == category_id);
+
+        return record != null ? DrinksCategoryConverter.ConvertToDomainModel(record) : null; ;
+    }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System;
+using CoffeeShops.Domain.Models.Enums;
 
 
 namespace CoffeeShops.Domain.Models
@@ -10,7 +11,7 @@ namespace CoffeeShops.Domain.Models
     public class User
     {
         public Guid Id_user { get; set; }
-        public int Id_role { get; set; }
+        public UserRole Id_role { get; set; }
 
         [Required(ErrorMessage = "Некорректное значение поля LOGIN.")]
         [StringLength(128, MinimumLength = 1, ErrorMessage = "Длина логина должна быть от 1 до 128 символов.")]
@@ -30,7 +31,7 @@ namespace CoffeeShops.Domain.Models
         public ICollection<FavDrinks> FavoriteDrinks { get; set; } = new List<FavDrinks>();
         public ICollection<FavCoffeeShops> FavoriteCoffeeShops { get; set; } = new List<FavCoffeeShops>();
 
-        public User( int _Id_role, string _Login, string _Passwordhash, DateTime _BirthDate, string _Email)
+        public User(UserRole _Id_role, string _Login, string _Passwordhash, DateTime _BirthDate, string _Email)
         {
             this.Id_role = _Id_role;
             this.Login = _Login;
@@ -38,7 +39,7 @@ namespace CoffeeShops.Domain.Models
             this.BirthDate = _BirthDate;
             this.Email = _Email;
         }
-        public User(Guid _Id, int _Id_role, string _Login, string _Passwordhash, DateTime _BirthDate, string _Email)
+        public User(Guid _Id, UserRole _Id_role, string _Login, string _Passwordhash, DateTime _BirthDate, string _Email)
         {
             this.Id_user = _Id;
             this.Id_role = _Id_role;

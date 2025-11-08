@@ -8,6 +8,7 @@ namespace CoffeeShops.Domain.Interfaces.Repositories
         Task AddAsync(DrinksCategory drinksCategory, int id_role);
         Task RemoveAsync(Guid drink_id, Guid category_id, int id_role);
         Task RemoveByDrinkIdAsync(Guid drink_id, int id_role);
+        Task<DrinksCategory>? GetRecordAsync(Guid drink_id, Guid category_id, int id_role);
 
     }
 }

@@ -13,15 +13,18 @@ public class CoffeeShopService : ICoffeeShopService
 {
     private readonly ICoffeeShopRepository _coffeeshopRepository;
     private readonly ICompanyRepository _companyRepository;
+    private readonly IFavCoffeeShopsRepository _favcoffeeshopsRepository;
     private readonly ILogger<CoffeeShopService> _logger;
 
     public CoffeeShopService(
         ICoffeeShopRepository coffeeshopRepository,
         ICompanyRepository companyRepository,
+        IFavCoffeeShopsRepository favcoffeeshopsRepository,
         ILogger<CoffeeShopService> logger)
     {
         _coffeeshopRepository = coffeeshopRepository;
         _companyRepository = companyRepository;
+        _favcoffeeshopsRepository = favcoffeeshopsRepository;
         _logger = logger;
     }
 
@@ -147,7 +150,7 @@ public class CoffeeShopService : ICoffeeShopService
                 _logger.LogWarning("Coffee shop not found for deletion: {CoffeeShopId}", coffeeshop_id);
                 throw new CoffeeShopNotFoundException($"Coffeeshop with id={coffeeshop_id} was not found");
             }
-
+            await _favcoffeeshopsRepository.RemoveByCoffeeShopIdAsync(coffeeshop_id, id_role);
             await _coffeeshopRepository.RemoveAsync(coffeeshop_id, id_role);
             _logger.LogInformation("Successfully deleted coffee shop: {CoffeeShopId}", coffeeshop_id);
         }
@@ -157,4 +160,5 @@ public class CoffeeShopService : ICoffeeShopService
             throw;
         }
     }
+
 }

@@ -6,11 +6,10 @@ namespace CoffeeShops.DTOs.DrinksCategory;
 
 public class AddDrinksCategory
 {
-    [JsonPropertyName("id_drink")]
-    [Required]
-    public Guid Id_drink { get; set; }
+    //[JsonPropertyName("category_ids")]
+    //[MinLength(1, ErrorMessage = "Должна быть указана хотя бы одна категория")]
+    //public List<Guid> CategoryIds { get; set; } = new List<Guid>();
 
-    [JsonPropertyName("category_ids")]
-    [Required]
-    public List<Guid> CategoryIds { get; set; }
+    [JsonPropertyName("category_id")]
+    public Guid CategoryId { get; set; }
 }

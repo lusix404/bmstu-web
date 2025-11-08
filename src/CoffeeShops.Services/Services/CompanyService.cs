@@ -11,13 +11,15 @@ namespace CoffeeShops.Services.Services
     public class CompanyService : ICompanyService
     {
         private readonly ICompanyRepository _companyRepository;
+        private readonly ICoffeeShopRepository _coffeeshopRepository;
         private readonly ILogger<CompanyService> _logger;
 
         public CompanyService(
-            ICompanyRepository companyRepository,
+            ICompanyRepository companyRepository, ICoffeeShopRepository coffeeshopRepository,
             ILogger<CompanyService> logger)
         {
             _companyRepository = companyRepository;
+            _coffeeshopRepository = coffeeshopRepository;
             _logger = logger;
         }
 
@@ -34,6 +36,7 @@ namespace CoffeeShops.Services.Services
                     _logger.LogWarning("Company not found: {CompanyId}", company_id);
                     throw new CompanyNotFoundException($"Company with id={company_id} was not found");
                 }
+
 
                 _logger.LogInformation("Successfully retrieved company: {CompanyName} (ID: {CompanyId})",
                     company.Name, company_id);
@@ -93,8 +96,9 @@ namespace CoffeeShops.Services.Services
             {
                 throw new CompanyNotFoundException($"Сеть кофеен с id_company={companyId} не найдена");
             }
-
-            await _companyRepository.RemoveAsync(companyId, id_role);
+            //await _coffeeshopRepository.RemoveAllByCompanyIdAsync(companyId, id_role);
+            //await _companyRepository.RemoveAsync(companyId, id_role);
+            await _companyRepository.RemoveCompanyWithAllDataAsync(companyId, id_role);
         }
     }
 }

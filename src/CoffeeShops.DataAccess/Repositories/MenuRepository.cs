@@ -17,29 +17,60 @@ public class MenuRepository : IMenuRepository
         _contextFactory = contextFactory;
     }
 
+    //public async Task<(List<Menu>? data, int total)> GetMenuByCompanyId(Guid company_id, int page, int limit, int id_role)
+    //{
+    //    var _context = _contextFactory.GetDbContext(id_role);
+    //    //var menuItems = await _context.Menus
+    //    //    .Where(m => m.Id_company == company_id)
+    //    //    .AsNoTracking()
+    //    //    .ToListAsync();
+
+    //    //return menuItems?.ConvertAll(MenuConverter.ConvertToDomainModel);
+
+    //    var menuItems = await _context.Menus
+    //        .Where(m => m.Id_company == company_id)
+    //        .Join(_context.Drinks,
+    //                m => m.Id_drink,
+    //                dr => dr.Id_drink,
+    //                (m, dr) => new Menu (m.Id_drink, m.Id_company, m.Size, m.Price, dr.Name))
+    //        .OrderBy(x => x.DrinkName)
+    //        .Skip((page - 1) * limit)
+    //        .Take(limit)
+    //        .AsNoTracking()
+    //        .ToListAsync();
+
+    //    return (menuItems, menuItems.Count);
+    //}
     public async Task<(List<Menu>? data, int total)> GetMenuByCompanyId(Guid company_id, int page, int limit, int id_role)
     {
         var _context = _contextFactory.GetDbContext(id_role);
-        //var menuItems = await _context.Menus
-        //    .Where(m => m.Id_company == company_id)
-        //    .AsNoTracking()
-        //    .ToListAsync();
 
-        //return menuItems?.ConvertAll(MenuConverter.ConvertToDomainModel);
+        var totalQuery = _context.Menus
+            .Where(m => m.Id_company == company_id);
 
-        var menuItems = await _context.Menus
+        var total = await totalQuery.CountAsync();
+
+        var menuItemsDb = await _context.Menus
             .Where(m => m.Id_company == company_id)
             .Join(_context.Drinks,
-                    m => m.Id_drink,
-                    dr => dr.Id_drink,
-                    (m, dr) => new Menu (m.Id_drink, m.Id_company, m.Size, m.Price, dr.Name))
+                  m => m.Id_drink,
+                  dr => dr.Id_drink,
+                  (m, dr) => new { MenuDb = m, DrinkName = dr.Name })
             .OrderBy(x => x.DrinkName)
             .Skip((page - 1) * limit)
             .Take(limit)
             .AsNoTracking()
             .ToListAsync();
 
-        return (menuItems, menuItems.Count);
+        var menuItems = menuItemsDb.Select(x => new Menu(
+            x.MenuDb.Id_drink,
+            x.MenuDb.Id_company,
+            x.MenuDb.Size,
+            x.MenuDb.Price,
+            x.DrinkName
+        )).ToList();
+
+        return (menuItems, total);
     }
 
     public async Task<(List<Company>? data, int total)> GetCompaniesByDrinkIdAsync(Guid drink_id, int page, int limit, int id_role)

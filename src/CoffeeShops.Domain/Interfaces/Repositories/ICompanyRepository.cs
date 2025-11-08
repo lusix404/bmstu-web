@@ -10,6 +10,7 @@ namespace CoffeeShops.Domain.Interfaces.Repositories
 
         Task<Guid> AddAsync(Company company, int id_role);
         Task RemoveAsync(Guid company_id, int id_role);
+        Task RemoveCompanyWithAllDataAsync(Guid company_id, int id_role);
 
     }
 }

@@ -94,6 +94,14 @@ public class UserRepository : IUserRepository
         
         var total = await query.CountAsync(); //количество элементов, удовлетворяющих условиям
 
+        //var to_skip = (total <= (page - 1) * limit) ? 0 : ((page - 1) * limit);
+
+        //var users = await query
+        //    .OrderBy(u => u.Login)
+        //    .Skip(to_skip)
+        //    .Take(limit)
+        //    .ToListAsync();
+
         var users = await query
             .OrderBy(u => u.Login)
             .Skip((page - 1) * limit)
@@ -118,7 +126,7 @@ public class UserRepository : IUserRepository
         existingUser.Email = user.Email;
         existingUser.Password = user.PasswordHash;
         existingUser.BirthDate = user.BirthDate;
-        existingUser.Id_role = user.Id_role;
+        existingUser.Id_role = UserRoleExtensions.ToRoleIntFromEnumType(user.Id_role);
 
         try
         {
@@ -129,7 +137,33 @@ public class UserRepository : IUserRepository
             throw new UserNotFoundException($"User with id={user.Id_user} not found");
         }
     }
-    public async Task UpdateUserRightsAsync(Guid id, UserRole new_role, int id_role)
+
+    public async Task PartialUpdateUserAsync(Guid Id_user, string login, string password, string email, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+
+        var existingUser = await _context.Users.FindAsync(Id_user);
+
+        if (existingUser == null)
+        {
+            throw new UserNotFoundException($"User with id={Id_user} not found");
+        }
+
+        existingUser.Login = login;
+        existingUser.Email = email;
+        existingUser.Password = password;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new UserNotFoundException($"User with id={Id_user} not found");
+        }
+    }
+
+    public async Task UpdateUserRightsAsync(Guid id, int new_role, int id_role)
     {
         var _context = _contextFactory.GetDbContext(id_role);
 
@@ -141,7 +175,7 @@ public class UserRepository : IUserRepository
         }
 
 
-        user.Id_role = (int)new_role;
+        user.Id_role = new_role;
 
         try
         {
@@ -160,6 +194,22 @@ public class UserRepository : IUserRepository
         {
             throw new UserNotFoundException($"User with id={id} not found");
         }
+        if (user.Id_role == (int)UserRole.Administrator)
+        {
+            var adminCount = await _context.Users
+           .CountAsync(u => u.Id_role == (int)UserRole.Administrator);
+
+            if (adminCount <= 1)
+            {
+                throw new UserLastAdminException("Нельзя удалить аккаунт последнего администратора");
+            }
+        }
+        //var adminCount = await _context.Users.CountAsync(u => u.Id_role == (int)UserRole.Administrator);
+        //if (adminCount == 1 && user.Id_role == (int)UserRole.Administrator)
+        //{
+        //    throw new UserLastAdminException("Нельзя удалить аккаунт последнего администратора.");
+        //}
+
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();

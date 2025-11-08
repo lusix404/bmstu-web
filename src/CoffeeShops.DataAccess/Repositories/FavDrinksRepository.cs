@@ -21,6 +21,14 @@ public class FavDrinksRepository : IFavDrinksRepository
         _contextFactory = contextFactory;
     }
 
+    public async Task<FavDrinks>? GetRecordAsync(Guid drink_id, Guid user_id, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+        var record = await _context.FavDrinks
+    .FirstOrDefaultAsync(dc => dc.Id_drink == drink_id && dc.Id_user == user_id);
+
+        return record != null ? FavDrinksConverter.ConvertToDomainModel(record) : null; ;
+    }
     public async Task AddAsync(FavDrinks added_drink, int id_role)
     {
         var _context = _contextFactory.GetDbContext(id_role);
@@ -73,6 +81,18 @@ public class FavDrinksRepository : IFavDrinksRepository
         return (drinks.ConvertAll(drink => DrinkConverter.ConvertToDomainModel(drink)), total);
     }
 
+    public async Task RemoveByDrinkIdAsync(Guid drink_id, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+        var favs = await _context.FavDrinks.Where(dc => dc.Id_drink == drink_id)
+            .ToListAsync();
+
+        if (favs.Any())
+        {
+            _context.FavDrinks.RemoveRange(favs);
+            await _context.SaveChangesAsync();
+        }
+    }
 
 }
 

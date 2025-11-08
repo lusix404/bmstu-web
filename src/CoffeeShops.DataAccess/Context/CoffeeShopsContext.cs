@@ -22,9 +22,9 @@ public class CoffeeShopsContext : DbContext
         public DbSet<FavDrinksDb> FavDrinks{ get; set; }
         public DbSet<FavCoffeeShopsDb> FavCoffeeShops { get; set; }
 
-    public CoffeeShopsContext(DbContextOptions options) : base(options)
-    {
-    }
+    //public CoffeeShopsContext(DbContextOptions options) : base(options)
+    //{
+    //}
     public CoffeeShopsContext(DbContextOptions<CoffeeShopsContext> options) : base(options)
     {
     }

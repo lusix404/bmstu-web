@@ -14,10 +14,10 @@ public class CompanyDb
     public string Name { get; set; }
 
     [Column("website", TypeName = "varchar(256)")]
-    public string Website { get; set; }
+    public string? Website { get; set; }
 
 
-    public CompanyDb(Guid id_company, string name, string website)
+    public CompanyDb(Guid id_company, string name, string? website)
     {
         this.Id_company = id_company;
         this.Name = name;

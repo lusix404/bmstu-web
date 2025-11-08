@@ -5,12 +5,7 @@ namespace CoffeeShops.DTOs.FavCoffeeShops;
 
 public class AddFavCoffeeShops
 {
-    [JsonPropertyName("id_cofeeshop")]
+    [JsonPropertyName("id_coffeeshop")]
     [Required]
-    public Guid Id_cofeeshop { get; set; }
-
-
-    [JsonPropertyName("id_user")]
-    [Required]
-    public Guid Id_user { get; set; }
+    public Guid Id_coffeeshop { get; set; }
 }

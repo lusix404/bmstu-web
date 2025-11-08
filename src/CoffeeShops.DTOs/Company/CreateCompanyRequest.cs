@@ -10,5 +10,5 @@ public class CreateCompanyRequest
     public string Name { get; set; }
 
     [JsonPropertyName("website")]
-    public string Website { get; set; }
+    public string? Website { get; set; }
 }

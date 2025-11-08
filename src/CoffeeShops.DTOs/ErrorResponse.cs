@@ -5,8 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
-namespace CoffeeShops.DTOs.Auth;
+namespace CoffeeShops.DTOs.Utils;
 
 public class ErrorResponse
 {

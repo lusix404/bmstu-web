@@ -16,6 +16,14 @@ public class FavCoffeeShopsRepository : IFavCoffeeShopsRepository
         _contextFactory = contextFactory;
     }
 
+    public async Task<FavCoffeeShops>? GetRecordAsync(Guid coffeeshop_id, Guid user_id, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+        var record = await _context.FavCoffeeShops
+    .FirstOrDefaultAsync(dc => dc.Id_coffeeshop == coffeeshop_id && dc.Id_user == user_id);
+
+        return record != null ? FavCoffeeShopsConverter.ConvertToDomainModel(record) : null; ;
+    }
 
     public async Task AddAsync(FavCoffeeShops added_coffeeshop, int id_role)
     {
@@ -75,6 +83,19 @@ public class FavCoffeeShopsRepository : IFavCoffeeShopsRepository
             .ToListAsync();
 
         return (coffeeshops, total);
+    }
+
+    public async Task RemoveByCoffeeShopIdAsync(Guid coffeeshop_id, int id_role)
+    {
+        var _context = _contextFactory.GetDbContext(id_role);
+        var favs = await _context.FavCoffeeShops.Where(dc => dc.Id_coffeeshop == coffeeshop_id)
+            .ToListAsync();
+
+        if (favs.Any())
+        {
+            _context.FavCoffeeShops.RemoveRange(favs);
+            await _context.SaveChangesAsync();
+        }
     }
 }
 

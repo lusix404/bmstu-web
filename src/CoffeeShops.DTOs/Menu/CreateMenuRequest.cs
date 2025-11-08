@@ -10,9 +10,9 @@ public class CreateMenuRequest
     [Required]
     public Guid Id_drink { get; set; }
 
-    [JsonPropertyName("id_company")]
-    [Required]
-    public Guid Id_company { get; set; }
+    //[JsonPropertyName("id_company")]
+    //[Required]
+    //public Guid Id_company { get; set; }
 
     [JsonPropertyName("size")]
     [Required]

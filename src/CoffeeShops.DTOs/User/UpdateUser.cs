@@ -5,9 +5,6 @@ namespace CoffeeShops.DTOs.User;
 
 public class UpdateUser
 {
-    [JsonPropertyName("id_user")]
-    [Required]
-    public Guid Id_user { get; set; }
 
     [JsonPropertyName("login")]
     [Required]

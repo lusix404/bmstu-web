@@ -4,7 +4,7 @@
 //using Swashbuckle.AspNetCore.Annotations;
 //using System.ComponentModel.DataAnnotations;
 //using CoffeeShops.Domain.Exceptions.CoffeeShopServiceExceptions;
-//using CoffeeShops.Domain.Exceptions.DrinkServiceExceptions;
+//using CoffeeShops.Domain.Exceptions.CoffeeShopServiceExceptions;
 //using CoffeeShops.Domain.Exceptions.UserServiceExceptions;
 
 //namespace CoffeeShops.Controllers
@@ -101,7 +101,7 @@
 //            }
 //        }
 
-       
+
 //        [HttpGet("{userId:guid}")]
 //        [ProducesResponseType(typeof(List<FavCoffeeShops>), StatusCodes.Status200OK)]
 //        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
@@ -135,3 +135,160 @@
 //        }
 //    }
 //}
+
+
+using CoffeeShops.Controllers;
+using CoffeeShops.Domain.Converters;
+using CoffeeShops.Domain.Exceptions.CoffeeShopServiceExceptions;
+using CoffeeShops.Domain.Models;
+using CoffeeShops.Domain.Models.Enums;
+using CoffeeShops.DTOs.FavCoffeeShops;
+using CoffeeShops.DTOs.CoffeeShop;
+using CoffeeShops.DTOs.Pagination;
+using CoffeeShops.DTOs.Utils;
+using CoffeeShops.Services.Interfaces.Services;
+using CoffeeShops.Services.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
+using CoffeeShops.DTOs.FavCoffeeShops;
+using CoffeeShops.Domain.Exceptions.UserServiceExceptions;
+using CoffeeShops.Domain.Exceptions.DrinkServiceExceptions;
+
+[ApiController]
+[Route("favcoffeeshops")]
+[Authorize]
+public class FavCoffeeShopsController : BaseController
+{
+    private readonly IFavCoffeeShopsService _favcoffeeshopsService;
+    private readonly ILogger<FavCoffeeShopsController> _logger;
+
+    public FavCoffeeShopsController(IFavCoffeeShopsService favcoffeeshopsService, ILogger<FavCoffeeShopsController> logger)
+    {
+        _favcoffeeshopsService = favcoffeeshopsService;
+        _logger = logger;
+    }
+
+    [HttpPost]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(CreateResponse), 201)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [SwaggerOperation(
+        Summary = "Добавить кофейню в избранное",
+        Description = "Добавляет конкретную кофейню в список избранных кофеен текущего пользователя"
+    )]
+    public async Task<IActionResult> AddCoffeeShopToFavs([FromBody] AddFavCoffeeShops coffeeshopRequest)
+    {
+        try
+        {
+            Guid cur_user_id = GetCurrentUserId();
+            int cur_id_role = UserRoleExtensions.ToRoleIntFromString(GetCurrentUserRole());
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new Error(
+                    message: "Некорректные данные запроса",
+                    code: 400,
+                    err_details: string.Join("; ", errors)
+                ));
+            }
+            await _favcoffeeshopsService.AddCoffeeShopToFavsAsync(cur_user_id, coffeeshopRequest.Id_coffeeshop, cur_id_role);
+
+            return StatusCode(201, $"Кофейня (id={coffeeshopRequest.Id_coffeeshop}) была успешно добавлена в список избранных для текущего пользователя(id={cur_user_id})");
+        }
+        catch (CoffeeShopNotFoundException ex)
+        {
+            return NotFound(new Error(
+                 message: "Кофейня не найдена",
+                 code: 404,
+                  err_details: ex.Message
+             ));
+        }
+        catch (UserNotFoundException ex)
+        {
+            return NotFound(new Error(
+                 message: "Пользователь не найден",
+                 code: 404,
+                  err_details: ex.Message
+             ));
+        }
+        catch (CoffeeShopAlreadyIsFavoriteException ex)
+        {
+            return Conflict(new Error(
+                 message: "Кофейня уже содержится в списке избранных кофеен текущего пользователя",
+                 code: 409,
+                 err_details: ex.Message
+             ));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new Error(
+                 message: "Внутренняя ошибка сервера",
+                 code: 500,
+                 err_details: ex.Message
+             ));
+        }
+    }
+
+    [HttpDelete("{coffeeshopId}")]
+    [Authorize(Roles = "Administrator, Moderator")]
+    [Produces("application/json")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [SwaggerOperation(
+    Summary = "Удалить кофейню из избранного",
+    Description = "Удаляет кофейню из списка избранных кофеен текущего пользователя"
+)]
+    public async Task<IActionResult> DeleteCoffeeShopFromFavs(
+    [FromRoute] Guid coffeeshopId)
+    {
+        try
+        {
+            Guid cur_user_id = GetCurrentUserId();
+            int cur_id_role = UserRoleExtensions.ToRoleIntFromString(GetCurrentUserRole());
+
+            await _favcoffeeshopsService.RemoveCoffeeShopFromFavsAsync(cur_user_id, coffeeshopId, cur_id_role);
+
+            return Ok(new { Message = "Кофейня успешно удалена из списка избранных кофеен" });
+        }
+        catch (CoffeeShopNotFoundException ex)
+        {
+            return NotFound(new Error(
+                 message: "Кофейня не найден",
+                 code: 404,
+                  err_details: ex.Message
+             ));
+        }
+        catch (UserNotFoundException ex)
+        {
+            return NotFound(new Error(
+                 message: "Пользователь не найден",
+                 code: 404,
+                  err_details: ex.Message
+             ));
+        }
+        catch (CoffeeShopIsNotFavoriteException ex)
+        {
+            return Conflict(new Error(
+                 message: "Кофейня не найден в списке избранных кофеен текущего пользователя",
+                 code: 404,
+                 err_details: ex.Message
+             ));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new Error(
+                 message: "Внутренняя ошибка сервера",
+                 code: 500,
+                 err_details: ex.Message
+             ));
+        }
+    }
+}

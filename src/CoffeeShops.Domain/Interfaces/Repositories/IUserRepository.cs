@@ -15,7 +15,8 @@ namespace CoffeeShops.Domain.Interfaces.Repositories
         //Task GrantModerRightsAsync(Guid id, int id_role);
         //Task RevokeModerRightsAsync(Guid id, int id_role);
         Task UpdateUserAsync(User user, int id_role);
-        Task UpdateUserRightsAsync(Guid id, UserRole new_id_role, int id_role);
+        Task PartialUpdateUserAsync(Guid Id_user, string login, string password, string email, int id_role);
+        Task UpdateUserRightsAsync(Guid id, int new_id_role, int id_role);
         Task DeleteUserAsync(Guid id, int id_role);
     }
 }

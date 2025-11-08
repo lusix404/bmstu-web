@@ -1,5 +1,6 @@
 ﻿using CoffeeShops.Domain.Models;
 using CoffeeShops.DataAccess.Models;
+using CoffeeShops.Domain.Models.Enums;
 
 namespace CoffeeShops.DataAccess.Converters;
 
@@ -9,7 +10,7 @@ public static class UserConverter
         {
             return new UserDb(
                 id_user: user.Id_user,
-                id_role: user.Id_role,
+                id_role: UserRoleExtensions.ToRoleIntFromEnumType(user.Id_role),
                 login: user.Login,
                 password: user.PasswordHash ?? "",
                 birthDate: user.BirthDate,
@@ -21,7 +22,7 @@ public static class UserConverter
         {
             return new User(
                 _Id: user.Id_user,
-                _Id_role: user.Id_role,
+                _Id_role: UserRoleExtensions.ToUserRoleEnumTypeFromInt(user.Id_role),
                 _Login: user.Login,
                 _Passwordhash: user.Password,
                 _BirthDate: user.BirthDate,

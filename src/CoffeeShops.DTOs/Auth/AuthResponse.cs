@@ -18,7 +18,7 @@ public class AuthResponse
     [Required]
     public Guid Id_user { get; set; }
 
-    [JsonPropertyName("id_role")]
+    [JsonPropertyName("rolename")]
     [Required]
-    public int Id_role { get; set; }
+    public string RoleName { get; set; }
 }

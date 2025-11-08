@@ -8,6 +8,8 @@ using System.Data;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShops.DataAccess.Models;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using CoffeeShops.Domain.Exceptions.DrinkServiceExceptions;
+using CoffeeShops.Domain.Exceptions.CategoryServiceExceptions;
 
 namespace CoffeeShops.DataAccess.Repositories;
 
@@ -45,6 +47,13 @@ public class CategoryRepository : ICategoryRepository
     public async Task<Guid> AddCategoryAsync(Category category, int id_role)
     {
         var _context = _contextFactory.GetDbContext(id_role);
+
+        bool Exists = await _context.Categories.AnyAsync(d => d.Name == category.Name);
+
+        if (Exists)
+        {
+            throw new CategoryUniqueException($"Категория с именем '{category.Name}' уже существует");
+        }
 
         var categoryDb = CategoryConverter.ConvertToDbModel(category);
         await _context.AddAsync(categoryDb);

@@ -6,21 +6,25 @@ using CoffeeShops.Domain.Interfaces.Repositories;
 using Microsoft.Extensions.Logging;
 using CoffeeShops.DTOs.Pagination;
 using CoffeeShops.DTOs.Drink;
+using System.Threading.Tasks;
 
 namespace CoffeeShops.Services.Services;
 
 public class DrinkService : IDrinkService
 {
     private readonly IDrinkRepository _drinkRepository;
-    //private readonly IDrinksCategoryRepository _drinkscategoryRepository;
+    private readonly IDrinksCategoryRepository _drinkscategoryRepository;
+    private readonly IFavDrinksRepository _favdrinksRepository;
     private readonly ILogger<DrinkService> _logger;
 
     public DrinkService(
-        IDrinkRepository drinkRepository,
-        ILogger<DrinkService> logger)
+        IDrinkRepository drinkRepository, IDrinksCategoryRepository drinkscategoryRepository,
+        IFavDrinksRepository favdrinksRepository, ILogger<DrinkService> logger)
     {
         _drinkRepository = drinkRepository;
         _logger = logger;
+        _drinkscategoryRepository = drinkscategoryRepository;
+        _favdrinksRepository = favdrinksRepository;
     }
 
     public async Task<Drink?> GetDrinkByIdAsync(Guid drink_id, int id_role)
@@ -72,7 +76,7 @@ public class DrinkService : IDrinkService
         }
     }
 
-    public async Task AddDrinkAsync(Drink drink, int id_role)
+    public async Task<Guid> AddDrinkAsync(Drink drink, int id_role)
     {
         _logger.LogInformation("Adding new drink");
 
@@ -90,9 +94,15 @@ public class DrinkService : IDrinkService
                 throw new DrinkIncorrectAtributeException("Drink's name cannot be empty");
             }
 
-            await _drinkRepository.AddAsync(drink, id_role);
-            _logger.LogInformation("Successfully added drink: {DrinkName} (ID: {DrinkId})",
-                drink.Name, drink.Id_drink);
+            var drinkId = await _drinkRepository.AddAsync(drink, id_role);
+            _logger.LogInformation("Successfully added drink: {DrinkName})",
+                drink.Name);
+            return drinkId;
+        }
+        catch (DrinkNameAlreadyExistsException ex)
+        {
+            _logger.LogError(ex, $"Drink with name {drink.Name} already exists");
+            throw;
         }
         catch (Exception ex)
         {
@@ -113,7 +123,8 @@ public class DrinkService : IDrinkService
                 _logger.LogWarning("Drink not found for deletion: {DrinkId}", drink_id);
                 throw new DrinkNotFoundException($"Drink with id={drink_id} was not found");
             }
-
+            await _drinkscategoryRepository.RemoveByDrinkIdAsync(drink_id, id_role); 
+            await _favdrinksRepository.RemoveByDrinkIdAsync(drink_id, id_role);
             await _drinkRepository.RemoveAsync(drink_id, id_role);
             _logger.LogInformation("Successfully deleted drink: {DrinkName} (ID: {DrinkId})",
                 drink.Name, drink_id);
