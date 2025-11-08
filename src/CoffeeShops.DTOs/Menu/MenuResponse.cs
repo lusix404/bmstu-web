@@ -6,6 +6,10 @@ namespace CoffeeShops.DTOs.Menu;
 
 public class MenuResponse
 {
+    [JsonPropertyName("id_menu")]
+    [Required]
+    public Guid Id_menu { get; set; }
+
     [JsonPropertyName("id_drink")]
     [Required]
     public Guid Id_drink { get; set; }

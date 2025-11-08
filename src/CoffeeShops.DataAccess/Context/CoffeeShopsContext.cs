@@ -232,8 +232,18 @@ public class CoffeeShopsContext : DbContext
         {
             entity.ToTable("menu");
 
-            entity.HasKey(menu => new { menu.Id_drink, menu.Id_company });
+            //entity.HasKey(menu => new { menu.Id_drink, menu.Id_company });
+            entity.HasKey(cs => cs.Id_menu)
+                  .HasName("id_menu");
 
+            entity.Property(cs => cs.Id_company)
+                  .HasColumnName("id_company")
+                  .HasColumnType("uuid")
+                  .IsRequired();
+            entity.Property(cs => cs.Id_drink)
+                  .HasColumnName("id_drink")
+                  .HasColumnType("uuid")
+                  .IsRequired();
 
             entity.Property(c => c.Size)
            .HasColumnName("size").HasColumnType("int"); 

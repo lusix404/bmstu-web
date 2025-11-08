@@ -37,7 +37,7 @@ namespace CoffeeShops.Services.Services
             }
 
             (var menu, int total) = await _menuRepository.GetMenuByCompanyId(company_id, page, limit, id_role);
-            if (menu == null)
+            if (menu == null || !menu.Any())
             {
                 _logger.LogWarning($"Menu for company with id={company_id} was not found.");
                 throw new MenuNotFoundException($"Menu for company with id={company_id} was not found");
@@ -74,7 +74,7 @@ namespace CoffeeShops.Services.Services
             }
 
             (var companies, int total) = await _menuRepository.GetCompaniesByDrinkIdAsync(drink_id, page, limit,id_role);
-            if (companies == null)
+            if (companies == null || !companies.Any())
             {
                 _logger.LogWarning($"There are no companies with drink(id={drink_id}) in their menu.");
                 throw new CompaniesByDrinkNotFoundException($"There is no companies with drink(id={drink_id}) in their menu");
@@ -108,6 +108,27 @@ namespace CoffeeShops.Services.Services
             _logger.LogInformation($"Drink with id={menurecord.Id_drink} added to the menu successfully.");
         }
 
+        //public async Task DeleteDrinkFromMenuAsync(Guid drink_id, Guid company_id, int id_role)
+        //{
+        //    _logger.LogInformation($"Attempting to delete drink with id={drink_id} from menu of company with id={company_id}.");
+
+        //    var drink = await _drinkRepository.GetDrinkByIdAsync(drink_id, id_role);
+        //    if (drink == null)
+        //    {
+        //        _logger.LogWarning($"Drink with id={drink_id} was not found.");
+        //        throw new DrinkNotFoundException($"Drink with id={drink_id} was not found");
+        //    }
+
+        //    var company = await _companyRepository.GetCompanyByIdAsync(company_id, id_role);
+        //    if (company == null)
+        //    {
+        //        _logger.LogWarning($"Company with id={company_id} was not found.");
+        //        throw new CompanyNotFoundException($"Company with id={company_id} was not found");
+        //    }
+
+        //    await _menuRepository.RemoveAsync(drink_id, company_id, id_role);
+        //    _logger.LogInformation($"Drink with id={drink_id} has been deleted from the menu of company with id={company_id}.");
+        //}
         public async Task DeleteDrinkFromMenuAsync(Guid drink_id, Guid company_id, int id_role)
         {
             _logger.LogInformation($"Attempting to delete drink with id={drink_id} from menu of company with id={company_id}.");

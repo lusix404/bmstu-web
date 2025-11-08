@@ -63,6 +63,7 @@ public class MenuRepository : IMenuRepository
             .ToListAsync();
 
         var menuItems = menuItemsDb.Select(x => new Menu(
+            x.MenuDb.Id_menu,
             x.MenuDb.Id_drink,
             x.MenuDb.Id_company,
             x.MenuDb.Size,
@@ -103,12 +104,16 @@ public class MenuRepository : IMenuRepository
     public async Task RemoveAsync(Guid drink_id, Guid company_id, int id_role)
     {
         var _context = _contextFactory.GetDbContext(id_role);
+        //var menuItem = await _context.Menus
+        //    .FirstOrDefaultAsync(m => m.Id_drink == drink_id && m.Id_company == company_id);
         var menuItem = await _context.Menus
-            .FirstOrDefaultAsync(m => m.Id_drink == drink_id && m.Id_company == company_id);
+            .Where(m => m.Id_drink == drink_id && m.Id_company == company_id)
+            .ToListAsync();
 
         if (menuItem != null)
         {
-            _context.Menus.Remove(menuItem);
+            //_context.Menus.Remove(menuItem);
+            _context.Menus.RemoveRange(menuItem);
             await _context.SaveChangesAsync();
         }
     }

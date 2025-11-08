@@ -65,9 +65,10 @@ create table if not exists companies(
 
 ------ТАБЛИЦА MENU---------
 create table if not exists menu(
+	id_menu UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	id_drink uuid not null,
 	id_company uuid not null,
-    primary key (id_drink, id_company),
+    -- primary key (id_drink, id_company),
 	size int not null check (size > 0),
 	price numeric(10,2) not null CHECK (price >= 0)
 );
