@@ -22,7 +22,32 @@ public class DrinkRepository : IDrinkRepository
         var drink = await _context.Drinks.FindAsync(drink_id);
         return drink != null ? DrinkConverter.ConvertToDomainModel(drink) : null;
     }
-    public async Task<(List<Drink>? data, int total)> GetAllDrinksAsync(DrinkFilters filters, int page, int limit, int id_role)
+    //public async Task<int> CountDrinksAsync()
+    //{
+    //    return Get().CountAsync();
+    //}
+    //private IQueryable<Drink> GetAllDrinks()
+    //{
+    //    var _context = _contextFactory.GetDbContext(id_role);
+    //    var query = _context.Drinks.AsQueryable();
+
+    //    if (filters.OnlyFavorites && (filters.Id_user != null))
+    //    {
+    //        query = query.Where(cs => _context.FavDrinks.Any(fav => fav.Id_drink == cs.Id_drink
+    //        && fav.Id_user == filters.Id_user));
+    //    }
+    //    if (!string.IsNullOrEmpty(filters.DrinkName))
+    //    {
+    //        query = query.Where(u => u.Name == filters.DrinkName);
+    //    }
+    //    if (!string.IsNullOrEmpty(filters.CategoryName))
+    //    {
+    //        query = query.Where(d => _context.DrinksCategories.Any(dc => dc.Id_drink == d.Id_drink &&
+    //               dc.Category!.Name == filters.CategoryName));
+    //    }
+    //    return query;
+    //}
+    public async Task<(List<Drink> data, int total)> GetAllDrinksAsync(DrinkFilters filters, int page, int limit, int id_role)
     {
         var _context = _contextFactory.GetDbContext(id_role);
         var query = _context.Drinks.AsQueryable();
@@ -39,7 +64,7 @@ public class DrinkRepository : IDrinkRepository
         if (!string.IsNullOrEmpty(filters.CategoryName))
         {
             query = query.Where(d => _context.DrinksCategories.Any(dc => dc.Id_drink == d.Id_drink &&
-                   dc.Category.Name == filters.CategoryName));
+                   dc.Category!.Name == filters.CategoryName));
         }
         var total = await query.CountAsync();
 

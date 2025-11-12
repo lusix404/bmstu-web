@@ -518,7 +518,7 @@ namespace CoffeeShops.Controllers;
 
 
 [ApiController]
-[Route("drinks")]
+[Route("api/v1/drinks")]
 [Authorize] 
 public class DrinkController : BaseController
 {

@@ -155,7 +155,7 @@ using CoffeeShops.DTOs.FavDrinks;
 using CoffeeShops.Domain.Exceptions.UserServiceExceptions;
 
 [ApiController]
-[Route("favdrinks")]
+[Route("api/v1/favdrinks")]
 [Authorize]
 public class FavDrinksController : BaseController
 {

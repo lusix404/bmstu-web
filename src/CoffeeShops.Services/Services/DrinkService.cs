@@ -52,7 +52,7 @@ public class DrinkService : IDrinkService
         }
     }
 
-    public async Task<PaginatedResponse<Drink>>? GetAllDrinksAsync(DrinkFilters filters, int page, int limit, int id_role)
+    public async Task<PaginatedResponse<Drink>> GetAllDrinksAsync(DrinkFilters filters, int page, int limit, int id_role)
     {
         _logger.LogInformation("Getting all drinks");
 
@@ -60,6 +60,7 @@ public class DrinkService : IDrinkService
         {
             (var drinks, int total) = await _drinkRepository.GetAllDrinksAsync(filters, page, limit, id_role);
 
+            //Это не очень хорошо, лучше возвращать пустой список
             if (drinks == null || !drinks.Any())
             {
                 _logger.LogWarning("No drinks found in database");

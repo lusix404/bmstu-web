@@ -113,7 +113,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 [ApiController]
-[Route("categories")]
+[Route("api/v1/categories")]
 [Authorize]
 public class CategoryController : BaseController
 {

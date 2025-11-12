@@ -89,7 +89,7 @@ namespace CoffeeShops.Controllers;
 
 
 [ApiController]
-[Route("companies")]
+[Route("api/v1/companies")]
 [Authorize]
 public class CompanyController : BaseController
 {

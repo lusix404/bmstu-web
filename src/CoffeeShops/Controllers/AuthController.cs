@@ -16,7 +16,7 @@ using CoffeeShops.DataAccess.Models;
 namespace CoffeeShops.Controllers;
 
 [ApiController]
-[Route("auth")]
+[Route("api/v1/auth")]
 public class AuthController : Controller
 {
     private readonly IUserService _userService;

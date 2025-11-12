@@ -185,7 +185,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
     serverOptions.Configure(builder.Configuration.GetSection("Kestrel"));
 });
 
-// Настройка DbContext
+
 builder.Services.AddDbContext<UserDbContext>(
     opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("UserConnection")));
 builder.Services.AddDbContext<AdminDbContext>(
@@ -194,7 +194,7 @@ builder.Services.AddDbContext<ModerDbContext>(
     opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("ModerConnection")));
 builder.Services.AddTransient<IDbContextFactory, DbContextFactory>();
 
-// Настройка аутентификации JWT
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -212,7 +212,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Настройка CORS
 builder.Services.AddCors();
 
 builder.Services.AddControllers();
@@ -255,7 +254,6 @@ builder.Services.AddSwaggerGen(c =>
     c.EnableAnnotations();
 });
 
-// Репозитории
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<ICategoryRepository, CategoryRepository>();
 builder.Services.AddTransient<ICoffeeShopRepository, CoffeeShopRepository>();
@@ -266,7 +264,6 @@ builder.Services.AddTransient<IFavCoffeeShopsRepository, FavCoffeeShopsRepositor
 builder.Services.AddTransient<IFavDrinksRepository, FavDrinksRepository>();
 builder.Services.AddTransient<IMenuRepository, MenuRepository>();
 
-// Сервисы
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<ICategoryService, CategoryService>();
 builder.Services.AddTransient<ICoffeeShopService, CoffeeShopService>();
@@ -278,13 +275,11 @@ builder.Services.AddTransient<IFavDrinksService, FavDrinksService>();
 builder.Services.AddTransient<IMenuService, MenuService>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 
-// Основной DbContext
 builder.Services.AddDbContext<CoffeeShopsContext>(
     opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
-// Проверка подключения к БД
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -306,13 +301,11 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Middleware pipeline
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
-// ВАЖНО: правильный порядок middleware
 app.UseRouting();
 
 app.UseCors(b =>

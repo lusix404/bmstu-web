@@ -373,7 +373,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 [ApiController]
-[Route("coffeeshops")]
+[Route("api/v1/coffeeshops")]
 [Authorize]
 public class CoffeeShopController : BaseController
 {
