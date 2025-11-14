@@ -106,7 +106,7 @@ public class CompanyController : BaseController
         _menuService = menuService;
     }
 
-    [HttpGet]
+    [HttpGet("companies")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(PaginatedResponse<CompanyResponse>), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 404)]
