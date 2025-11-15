@@ -18,7 +18,7 @@ using CoffeeShops.DTOs.Company;
 
 namespace CoffeeShops.Controllers.GUI;
 
-[Route("api/v2/[controller]")]
+[Route("[controller]")]
 [ApiExplorerSettings(IgnoreApi = true)]
 public class CoffeeShopGuiController : BaseGuiController
 {

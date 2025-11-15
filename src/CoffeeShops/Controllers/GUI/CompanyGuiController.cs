@@ -14,7 +14,7 @@ using System.Collections.Generic;
 
 namespace CoffeeShops.Controllers.GUI;
 
-[Route("api/v2/[controller]")]
+[Route("[controller]")]
 [ApiExplorerSettings(IgnoreApi = true)]
 public class CompanyGuiController : BaseGuiController
 {

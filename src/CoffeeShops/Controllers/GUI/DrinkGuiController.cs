@@ -15,7 +15,7 @@ using CoffeeShops.Controllers.GUI;
 
 namespace CoffeeShops.Controllers.Gui;
 
-[Route("api/v2/[controller]")]
+[Route("[controller]")]
 [ApiExplorerSettings(IgnoreApi = true)]
 public class DrinkGuiController : BaseGuiController
 {

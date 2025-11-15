@@ -372,11 +372,11 @@ builder.Services.AddSwaggerGen(c =>
     c.EnableAnnotations();
 
     // ИГНОРИРУЕМ GUI КОНТРОЛЛЕРЫ В SWAGGER
-    c.DocInclusionPredicate((docName, apiDesc) =>
-    {
-        // Включаем в Swagger только API, но не GUI маршруты
-        return !apiDesc.RelativePath?.StartsWith("api/v2/") == true;
-    });
+    //c.DocInclusionPredicate((docName, apiDesc) =>
+    //{
+    //    // Включаем в Swagger только API, но не GUI маршруты
+    //    return !apiDesc.RelativePath?.StartsWith("api/v2/") == true;
+    //});
 });
 
 builder.Services.AddTransient<IUserRepository, UserRepository>();
@@ -465,7 +465,7 @@ app.UseEndpoints(endpoints =>
     // GUI маршруты (для графического интерфейса)
     endpoints.MapControllerRoute(
         name: "gui",
-        pattern: "api/v2/{controller=UserGui}/{action=Login}/{id?}"); 
+        pattern: "{controller=UserGui}/{action=Login}/{id?}"); 
 
     // Стандартный MVC маршрут как fallback
     endpoints.MapControllerRoute(
@@ -473,7 +473,7 @@ app.UseEndpoints(endpoints =>
         pattern: "{controller=UserGui}/{action=Login}/{id?}"); 
 });
 
-app.MapGet("/", () => Results.Redirect("/api/v2/usergui/login")) 
+app.MapGet("/", () => Results.Redirect("/usergui/login")) 
    .ExcludeFromDescription();
 
 // РЕДИРЕКТ ДЛЯ SWAGGER
