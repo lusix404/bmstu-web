@@ -1,0 +1,239 @@
+version: "3.9"
+
+services:
+  db:
+    image: bitnami/postgresql:latest
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=lucy2004
+      - POSTGRESQL_DATABASE=web_course
+      - POSTGRESQL_REPLICATION_USER=replicator
+      - POSTGRESQL_REPLICATION_PASSWORD=replicator2025
+    ports:
+      - "55432:5432"
+    networks:
+      - app-network
+    volumes:
+      - postgres_data:/bitnami/postgresql
+      - ./init-db:/docker-entrypoint-initdb.d:Z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d web_course"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  db-replica:
+    image: bitnami/postgresql:latest
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_PRIMARY_HOST=db
+      - POSTGRESQL_PRIMARY_PORT_NUMBER=5432
+      - POSTGRESQL_PRIMARY_USER=postgres
+      - POSTGRESQL_PRIMARY_PASSWORD=lucy2004
+      - POSTGRESQL_MASTER_HOST=db
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - POSTGRESQL_MASTER_USER=postgres
+      - POSTGRESQL_MASTER_PASSWORD=lucy2004
+      - POSTGRESQL_REPLICATION_USER=replicator
+      - POSTGRESQL_REPLICATION_PASSWORD=replicator2025
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=lucy2004
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - postgres_replica_data:/bitnami/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d web_course -h db-replica"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    image: coffeeshops-app:latest
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:8080"
+      InstanceName: main
+      ReadOnlyMode: "false"
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=web_course;Username=postgres;Password=lucy2004;"
+      ConnectionStrings__UserConnection: "Host=db;Port=5432;Database=web_course;Username=ordinary_user;Password=user2025"
+      ConnectionStrings__ModerConnection: "Host=db;Port=5432;Database=web_course;Username=moderator;Password=moder2025"
+      ConnectionStrings__AdminConnection: "Host=db;Port=5432;Database=web_course;Username=administrator;Password=admin2025"
+    ports:
+      - "7081:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    labels:
+      AppInstance: main
+      Role: write
+    volumes:
+      - ./logs/main:/app/logs:Z
+      - ./logs/main:/app/Logs:Z
+
+  app-ro1:
+    image: coffeeshops-app:latest
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:8080"
+      InstanceName: ro1
+      ReadOnlyMode: "true"
+      ConnectionStrings__DefaultConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+      ConnectionStrings__UserConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+      ConnectionStrings__ModerConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+      ConnectionStrings__AdminConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+    ports:
+      - "7082:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      db-replica:
+        condition: service_healthy
+    networks:
+      - app-network
+    labels:
+      AppInstance: ro1
+      Role: read
+    volumes:
+      - ./logs/ro1:/app/logs:Z
+      - ./logs/ro1:/app/Logs:Z
+
+  app-ro2:
+    image: coffeeshops-app:latest
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:8080"
+      InstanceName: ro2
+      ReadOnlyMode: "true"
+      ConnectionStrings__DefaultConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+      ConnectionStrings__UserConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+      ConnectionStrings__ModerConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+      ConnectionStrings__AdminConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+    ports:
+      - "7083:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      db-replica:
+        condition: service_healthy
+    networks:
+      - app-network
+    labels:
+      AppInstance: ro2
+      Role: read
+    volumes:
+      - ./logs/ro2:/app/logs:Z
+      - ./logs/ro2:/app/Logs:Z
+
+  app-mirror:
+    image: coffeeshops-app:latest
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_PATHBASE: "/mirror"
+      PathBase: "/mirror"
+      InstanceName: mirror
+      ReadOnlyMode: "true"
+      ConnectionStrings__DefaultConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+      ConnectionStrings__UserConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+      ConnectionStrings__ModerConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+      ConnectionStrings__AdminConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+    depends_on:
+      db:
+        condition: service_healthy
+      db-replica:
+        condition: service_healthy
+    networks:
+      - app-network
+    labels:
+      AppInstance: mirror
+      Role: read
+    volumes:
+      - ./logs/mirror:/app/logs:Z
+      - ./logs/mirror:/app/Logs:Z
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: coffeeshops-nginx:latest
+    depends_on:
+      app:
+        condition: service_started
+      app-ro1:
+        condition: service_started
+      app-ro2:
+        condition: service_started
+      app-mirror:
+        condition: service_started
+      grafana:
+        condition: service_started
+    ports:
+      - "7080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro,Z
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro,Z
+      - ./logs/nginx:/var/log/nginx:Z
+    networks:
+      - app-network
+
+  loki:
+    image: grafana/loki:2.9.0
+    command: [ "-config.file=/etc/loki/config.yaml" ]
+    networks:
+      - app-network
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/config.yaml:ro,Z
+      - loki_data:/loki
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    command: -config.file=/etc/promtail/config.yml
+    user: root
+    privileged: true
+    networks:
+      - app-network
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro,Z
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro,Z
+      - ./logs:/var/log/app:ro,Z
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  grafana:
+    image: grafana/grafana:10.4.3
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SERVER_ROOT_URL=http://localhost:7080/monitoring/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    depends_on:
+      - loki
+    ports:
+      - "7090:3000"
+    networks:
+      - app-network
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro,Z
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+volumes:
+  postgres_data:
+  postgres_replica_data:
+  loki_data:
+  grafana_data:

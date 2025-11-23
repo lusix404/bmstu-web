@@ -106,7 +106,8 @@ public class CompanyController : BaseController
         _menuService = menuService;
     }
 
-    [HttpGet("companies")]
+    // [HttpGet("companies")]
+    [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(PaginatedResponse<CompanyResponse>), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 404)]
@@ -115,6 +116,7 @@ public class CompanyController : BaseController
         Summary = "Получить все сети кофеен",
         Description = "Возвращает пагинированный список сетей кофеен"
     )]
+    [AllowAnonymous] 
     public async Task<IActionResult> GetAllCompanies(
        [FromQuery] int page = 1,
         [FromQuery] int limit = 20,
@@ -122,9 +124,10 @@ public class CompanyController : BaseController
     {
         try
         {
-            Guid cur_user_id = GetCurrentUserId();
-            int cur_id_role = UserRoleExtensions.ToRoleIntFromString(GetCurrentUserRole());
+            // Guid cur_user_id = GetCurrentUserId();
+            // int cur_id_role = UserRoleExtensions.ToRoleIntFromString(GetCurrentUserRole());
 
+            int cur_id_role = UserRoleExtensions.ToRoleIntFromString("Ordinary_user");
             if (page < 1) page = 1;
             if (limit < 1 || limit > 100) limit = 20;
 
@@ -137,14 +140,14 @@ public class CompanyController : BaseController
 
             return Ok(result);
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(401, new Error(
-                 message: "Пользователь не авторизован",
-                 code: 401,
-                  err_details: ex.Message
-             ));
-        }
+        // catch (UnauthorizedAccessException ex)
+        // {
+        //     return StatusCode(401, new Error(
+        //          message: "Пользователь не авторизован",
+        //          code: 401,
+        //           err_details: ex.Message
+        //      ));
+        // }
         catch (NoCompaniesFoundException ex)
         {
             return StatusCode(404, new Error(

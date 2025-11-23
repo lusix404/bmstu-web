@@ -1,0 +1,5 @@
+-- Superseded by 006-seed-data.sql to keep all seed operations in one place.
+-- COPY companies(id_company, name, website) 
+-- FROM '/docker-entrypoint-initdb.d/companies.csv' 
+-- DELIMITER ',' 
+-- CSV HEADER;
