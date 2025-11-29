@@ -69,7 +69,6 @@ using CoffeeShops.Services.Interfaces.Services;
 using CoffeeShops.DTOs.Utils;
 using CoffeeShops.Domain.Converters;
 using System.Net;
-using CoffeeShops.DataAccess.Models;
 using CoffeeShops.DTOs.Pagination;
 using CoffeeShops.DTOs.Company;
 using Microsoft.AspNetCore.Authorization;

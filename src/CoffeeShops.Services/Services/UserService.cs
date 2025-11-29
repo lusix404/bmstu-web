@@ -105,10 +105,12 @@ namespace CoffeeShops.Services.Services
         //исправлено: теперь метод возвр. id пользователя
         public async Task<Guid> Registrate(User user)
         {
-            int id_role = 1;
-            _logger.LogInformation($"Attempting to register user with login={user.Login}.");
+            const int dataReadRole = (int)UserRole.Ordinary_user;
+            const int dataWriteRole = (int)UserRole.Administrator;
 
-            if (await _userRepository.GetUserByLoginAsync(user.Login, id_role) != null)
+            _logger.LogInformation("Attempting to register user with login={Login}.", user.Login);
+
+            if (await _userRepository.GetUserByLoginAsync(user.Login, dataReadRole) != null)
             {
                 _logger.LogWarning($"User with login={user.Login} already exists.");
                 throw new UserLoginAlreadyExistsException($"User with login={user.Login} already exists");
@@ -126,8 +128,9 @@ namespace CoffeeShops.Services.Services
                 }
             }
 
-            var id_user = await _userRepository.AddUserAsync(user, id_role);
-            _logger.LogInformation($"User with login={user.Login} registered successfully.");
+            // Создаем пользователя через контекст с правами записи
+            var id_user = await _userRepository.AddUserAsync(user, dataWriteRole);
+            _logger.LogInformation("User with login={Login} registered successfully.", user.Login);
             return id_user;
         }
 
@@ -189,4 +192,3 @@ namespace CoffeeShops.Services.Services
 
     }
 }
-

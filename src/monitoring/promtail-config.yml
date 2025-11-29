@@ -40,13 +40,14 @@ scrape_configs:
       - targets: [localhost]
         labels:
           job: app
-          __path__: /var/log/app/*/coffeeshops-*.txt
+          __path__: /var/log/app/*/*.txt
     pipeline_stages:
       - regex:
           source: filename
-          expression: ".*/(?P<instance>[^/]+)/coffeeshops-.*"
+          expression: ".*/(?P<instance>[^/]+)/(?P<file>[^/]+)$"
       - labels:
           instance:
+          file:
 
   - job_name: nginx-logs
     static_configs:

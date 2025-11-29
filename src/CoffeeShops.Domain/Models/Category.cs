@@ -4,6 +4,9 @@ namespace CoffeeShops.Domain.Models
     {
         public Guid Id_category { get; set; }
         public string Name { get; set; }
+
+        public Category() { }
+
         public Category(string _Name)
         {
             this.Name = _Name;

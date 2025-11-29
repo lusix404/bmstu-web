@@ -42,7 +42,7 @@
           "refId": "A"
         }
         ],
-        "title": "Application logs (instance: main|ro1|ro2|mirror)",
+        "title": "Gateway/Core/Data logs (all instances)",
         "type": "logs"
     }
   ],

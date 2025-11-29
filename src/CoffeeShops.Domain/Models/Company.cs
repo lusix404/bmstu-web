@@ -8,6 +8,9 @@ namespace CoffeeShops.Domain.Models
         public Guid Id_company { get; set; }
         public string Name { get; set; }
         public string? Website { get; set; }
+
+        public Company() { }
+
         public Company(string _Name, string _Website)
         {
             this.Name = _Name;

@@ -15,9 +15,12 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\CoffeeShops.Domain\CoffeeShops.Domain.csproj" />
-		<ProjectReference Include="..\CoffeeShops.DataAccess\CoffeeShops.DataAccess.csproj" />
 		<ProjectReference Include="..\CoffeeShops.DTOs\CoffeeShops.DTOs.csproj" />
 		<ProjectReference Include="..\CoffeeShops.Services\CoffeeShops.Services.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="Data/Migrations/**" />
 	</ItemGroup>
 
 	<PropertyGroup>

@@ -31,6 +31,8 @@ namespace CoffeeShops.Domain.Models
         public ICollection<FavDrinks> FavoriteDrinks { get; set; } = new List<FavDrinks>();
         public ICollection<FavCoffeeShops> FavoriteCoffeeShops { get; set; } = new List<FavCoffeeShops>();
 
+        public User() { }
+
         public User(UserRole _Id_role, string _Login, string _Passwordhash, DateTime _BirthDate, string _Email)
         {
             this.Id_role = _Id_role;
@@ -55,7 +57,8 @@ namespace CoffeeShops.Domain.Models
         }
         protected bool IsValidDate(DateTime date)
         {
-            return date <= DateTime.Now;
+            // дата рождения должна быть строго раньше текущего дня (как в ограничении БД)
+            return date.Date < DateTime.UtcNow.Date;
         }
 
         public List<string> Validate()
@@ -76,7 +79,7 @@ namespace CoffeeShops.Domain.Models
 
             if (!IsValidDate(BirthDate))
             {
-                errors.Add("Дата рождения не может превышать текущую дату.");
+                errors.Add("Дата рождения должна быть раньше текущего дня.");
             }
 
             if (!IsValidEmail(Email))

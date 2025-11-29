@@ -1,0 +1,24 @@
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 8080
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+COPY *.sln .
+COPY CoffeeShops.CoreService/*.csproj CoffeeShops.CoreService/
+COPY CoffeeShops.Domain/*.csproj CoffeeShops.Domain/
+COPY CoffeeShops.DTOs/*.csproj CoffeeShops.DTOs/
+COPY CoffeeShops.Services/*.csproj CoffeeShops.Services/
+
+RUN dotnet restore CoffeeShops.CoreService/CoffeeShops.CoreService.csproj
+
+COPY . .
+
+WORKDIR /src/CoffeeShops.CoreService
+RUN dotnet publish -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "CoffeeShops.CoreService.dll"]

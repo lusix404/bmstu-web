@@ -8,6 +8,9 @@ namespace CoffeeShops.Domain.Models
         public int Size { get; set; }
         public decimal Price { get; set; }
         public string? DrinkName { get; set; }
+
+        public Menu() { }
+
         public Menu(Guid _Id_drink, Guid _Id_company, int _Size, decimal _Price)
         {
             Id_drink = _Id_drink;

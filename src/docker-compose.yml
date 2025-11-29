@@ -11,7 +11,7 @@ services:
       - POSTGRESQL_REPLICATION_USER=replicator
       - POSTGRESQL_REPLICATION_PASSWORD=replicator2025
     ports:
-      - "55432:5432"
+      - "55433:5432"
     networks:
       - app-network
     volumes:
@@ -52,47 +52,42 @@ services:
       timeout: 3s
       retries: 10
 
-  app:
+  data-main:
     build:
       context: .
-      dockerfile: Dockerfile.app
-    image: coffeeshops-app:latest
+      dockerfile: Dockerfile.data
+    image: coffeeshops-data:latest
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://+:8080"
-      InstanceName: main
+      ASPNETCORE_ENVIRONMENT: Development
+      InstanceName: data-main
       ReadOnlyMode: "false"
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=web_course;Username=postgres;Password=lucy2004;"
       ConnectionStrings__UserConnection: "Host=db;Port=5432;Database=web_course;Username=ordinary_user;Password=user2025"
       ConnectionStrings__ModerConnection: "Host=db;Port=5432;Database=web_course;Username=moderator;Password=moder2025"
       ConnectionStrings__AdminConnection: "Host=db;Port=5432;Database=web_course;Username=administrator;Password=admin2025"
-    ports:
-      - "7081:8080"
     depends_on:
       db:
         condition: service_healthy
     networks:
       - app-network
     labels:
-      AppInstance: main
+      AppInstance: data-main
       Role: write
     volumes:
-      - ./logs/main:/app/logs:Z
-      - ./logs/main:/app/Logs:Z
+      - ./logs/data-main:/app/logs:Z
 
-  app-ro1:
-    image: coffeeshops-app:latest
+  data-ro1:
+    image: coffeeshops-data:latest
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://+:8080"
-      InstanceName: ro1
+      ASPNETCORE_ENVIRONMENT: Development
+      InstanceName: data-ro1
       ReadOnlyMode: "true"
       ConnectionStrings__DefaultConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
       ConnectionStrings__UserConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
       ConnectionStrings__ModerConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
       ConnectionStrings__AdminConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
-    ports:
-      - "7082:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -101,25 +96,22 @@ services:
     networks:
       - app-network
     labels:
-      AppInstance: ro1
+      AppInstance: data-ro1
       Role: read
     volumes:
-      - ./logs/ro1:/app/logs:Z
-      - ./logs/ro1:/app/Logs:Z
+      - ./logs/data-ro1:/app/logs:Z
 
-  app-ro2:
-    image: coffeeshops-app:latest
+  data-ro2:
+    image: coffeeshops-data:latest
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://+:8080"
-      InstanceName: ro2
+      ASPNETCORE_ENVIRONMENT: Development
+      InstanceName: data-ro2
       ReadOnlyMode: "true"
       ConnectionStrings__DefaultConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
       ConnectionStrings__UserConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
       ConnectionStrings__ModerConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
       ConnectionStrings__AdminConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
-    ports:
-      - "7083:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -128,38 +120,141 @@ services:
     networks:
       - app-network
     labels:
-      AppInstance: ro2
+      AppInstance: data-ro2
       Role: read
     volumes:
-      - ./logs/ro2:/app/logs:Z
-      - ./logs/ro2:/app/Logs:Z
+      - ./logs/data-ro2:/app/logs:Z
 
-  app-mirror:
-    image: coffeeshops-app:latest
+  core-main:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    image: coffeeshops-core:latest
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: Development
+      InstanceName: core-main
+      ReadOnlyMode: "false"
+      DataService__BaseUrl: "http://data-main:8080"
+      Jwt__Secret: "secret-2025-web-lab-very-long-key!!"
+    depends_on:
+      data-main:
+        condition: service_started
+    networks:
+      - app-network
+    labels:
+      AppInstance: core-main
+      Role: write
+    volumes:
+      - ./logs/core-main:/app/logs:Z
+
+  core-ro1:
+    image: coffeeshops-core:latest
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: Development
+      InstanceName: core-ro1
+      ReadOnlyMode: "true"
+      DataService__BaseUrl: "http://data-ro1:8080"
+      Jwt__Secret: "secret-2025-web-lab-very-long-key!!"
+    depends_on:
+      data-ro1:
+        condition: service_started
+    networks:
+      - app-network
+    labels:
+      AppInstance: core-ro1
+      Role: read
+    volumes:
+      - ./logs/core-ro1:/app/logs:Z
+
+  core-ro2:
+    image: coffeeshops-core:latest
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: Development
+      InstanceName: core-ro2
+      ReadOnlyMode: "true"
+      DataService__BaseUrl: "http://data-ro2:8080"
+      Jwt__Secret: "secret-2025-web-lab-very-long-key!!"
+    depends_on:
+      data-ro2:
+        condition: service_started
+    networks:
+      - app-network
+    labels:
+      AppInstance: core-ro2
+      Role: read
+    volumes:
+      - ./logs/core-ro2:/app/logs:Z
+
+  gateway-main:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    image: coffeeshops-gateway:latest
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: Development
+      InstanceName: gateway-main
+      ReadOnlyMode: "false"
+      CoreService__BaseUrl: "http://core-main:8080"
+      Jwt__Secret: "secret-2025-web-lab-very-long-key!!"
+    depends_on:
+      core-main:
+        condition: service_started
+    networks:
+      - app-network
+    labels:
+      AppInstance: gateway-main
+      Role: write
+    volumes:
+      - ./logs/gateway-main:/app/logs:Z
+      - ./logs/gateway-main:/app/Logs:Z
+
+  gateway-ro1:
+    image: coffeeshops-gateway:latest
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: Development
+      InstanceName: gateway-ro1
+      ReadOnlyMode: "true"
+      CoreService__BaseUrl: "http://core-ro1:8080"
+      Jwt__Secret: "secret-2025-web-lab-very-long-key!!"
+    depends_on:
+      core-ro1:
+        condition: service_started
+    networks:
+      - app-network
+    labels:
+      AppInstance: gateway-ro1
+      Role: read
+    volumes:
+      - ./logs/gateway-ro1:/app/logs:Z
+      - ./logs/gateway-ro1:/app/Logs:Z
+
+  gateway-ro2:
+    image: coffeeshops-gateway:latest
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_PATHBASE: "/mirror"
       PathBase: "/mirror"
-      InstanceName: mirror
+      InstanceName: gateway-ro2
       ReadOnlyMode: "true"
-      ConnectionStrings__DefaultConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
-      ConnectionStrings__UserConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
-      ConnectionStrings__ModerConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
-      ConnectionStrings__AdminConnection: "Host=db-replica;Port=5432;Database=web_course;Username=guest;Password=guest2025"
+      CoreService__BaseUrl: "http://core-ro2:8080"
+      Jwt__Secret: "secret-2025-web-lab-very-long-key!!"
     depends_on:
-      db:
-        condition: service_healthy
-      db-replica:
-        condition: service_healthy
+      core-ro2:
+        condition: service_started
     networks:
       - app-network
     labels:
-      AppInstance: mirror
+      AppInstance: gateway-ro2
       Role: read
     volumes:
-      - ./logs/mirror:/app/logs:Z
-      - ./logs/mirror:/app/Logs:Z
+      - ./logs/gateway-ro2:/app/logs:Z
+      - ./logs/gateway-ro2:/app/Logs:Z
 
   nginx:
     build:
@@ -167,13 +262,11 @@ services:
       dockerfile: Dockerfile
     image: coffeeshops-nginx:latest
     depends_on:
-      app:
+      gateway-main:
         condition: service_started
-      app-ro1:
+      gateway-ro1:
         condition: service_started
-      app-ro2:
-        condition: service_started
-      app-mirror:
+      gateway-ro2:
         condition: service_started
       grafana:
         condition: service_started
@@ -196,7 +289,7 @@ services:
       - loki_data:/loki
 
   promtail:
-    image: grafana/promtail:2.9.4 
+    image: grafana/promtail:2.9.0
     command: -config.file=/etc/promtail/config.yml
     user: root
     privileged: true

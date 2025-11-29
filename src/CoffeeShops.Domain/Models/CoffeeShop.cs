@@ -8,6 +8,9 @@ namespace CoffeeShops.Domain.Models
         public string WorkingHours { get; set; }
         
         public string? CompanyName { get; set; }
+
+        public CoffeeShop() { }
+
         public CoffeeShop(Guid _Id_company, string _Address, string _WorkingHours)
         {
             this.Id_company = _Id_company;

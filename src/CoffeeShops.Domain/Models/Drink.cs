@@ -8,6 +8,8 @@ public class Drink
     public Guid Id_drink { get; set; }
     public string Name { get; set; }
 
+    public Drink() { }
+
     public Drink(string _Name)
     {
         this.Name = _Name;
@@ -22,6 +24,5 @@ public class Drink
 
 
 }
-
 
 

@@ -10,7 +10,6 @@ using CoffeeShops.DTOs.Auth;
 using CoffeeShops.DTOs.Utils;
 using CoffeeShops.Domain.Converters;
 using System.Net;
-using CoffeeShops.DataAccess.Models;
 
 
 namespace CoffeeShops.Controllers;

@@ -5,6 +5,9 @@ namespace CoffeeShops.Domain.Models
         public Guid Id_user { get; set; }
         public Guid Id_coffeeshop { get; set; }
         public string? CoffeeShopName { get; set; }
+
+        public FavCoffeeShops() { }
+
         public FavCoffeeShops(Guid _Id_user, Guid _Id_coffeeshop)
         {
             Id_user = _Id_user;

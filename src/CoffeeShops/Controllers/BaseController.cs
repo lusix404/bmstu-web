@@ -18,7 +18,7 @@ public class BaseController : ControllerBase
 
     protected string GetCurrentUserRole()
     {
-        var roleClaim = User.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
         if (string.IsNullOrEmpty(roleClaim))
         {
             throw new UnauthorizedAccessException("User role not found");

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using CoffeeShops.ViewModels;
-using Azure;
 using CoffeeShops.Domain.Models.Enums;
 using CoffeeShops.DTOs.User;
 using Serilog;

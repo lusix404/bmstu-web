@@ -500,7 +500,6 @@ using CoffeeShops.DTOs.Auth;
 using CoffeeShops.DTOs.Utils;
 using CoffeeShops.Domain.Converters;
 using System.Net;
-using CoffeeShops.DataAccess.Models;
 using CoffeeShops.DTOs.Pagination;
 using CoffeeShops.DTOs.Drink;
 using Microsoft.AspNetCore.Authorization;
