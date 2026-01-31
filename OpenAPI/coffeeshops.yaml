@@ -918,7 +918,7 @@ paths:
                       data:
                         type: array
                         items:
-                          $ref: '#/components/schemas/CategoryData'
+                          $ref: '#/components/schemas/Category'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':

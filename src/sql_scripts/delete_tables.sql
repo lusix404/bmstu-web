@@ -1,0 +1,10 @@
+drop table if exists favdrinks;
+drop table if exists favcoffeeshops;
+drop table if exists menu;
+drop table if exists drinkscategory;
+drop table if exists coffeeshops;
+drop table if exists users;
+drop table if exists drinks;
+drop table if exists categories;
+drop table if exists companies;
+drop table if exists roles;
